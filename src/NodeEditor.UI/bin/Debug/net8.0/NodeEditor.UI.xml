@@ -4,5 +4,327 @@
         <name>NodeEditor.UI</name>
     </assembly>
     <members>
+        <member name="T:NodeEditor.UI.Canvas.CanvasInput">
+             <summary>
+             Per-frame input handler. Reads from <see cref="T:NodeEditor.Core.Interfaces.IInputSource"/> and ImGui
+             hover/focus state to drive the <see cref="T:NodeEditor.Core.View.InteractionMode"/> state machine.
+            
+             Interactions handled:
+             - Scroll-wheel zoom centred on cursor
+             - RMB drag panning
+             - LMB click/drag: select node, start drag, marquee, pending wire
+             - Release: commit moves, commit wire connection
+             - Delete key: remove selected elements
+             </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Canvas.CanvasInput.Handle(NodeEditor.Core.View.GraphView)">
+            <summary>
+            Process one frame of input for the given view.
+            Must be called after the canvas child window is active.
+            </summary>
+        </member>
+        <member name="T:NodeEditor.UI.Canvas.CanvasLayout">
+            <summary>
+            Per-frame layout data computed before any drawing begins.
+            Stores screen-space geometry for all visible nodes and pins.
+            </summary>
+        </member>
+        <member name="P:NodeEditor.UI.Canvas.CanvasLayout.NodeScreenRects">
+            <summary>Bounding rects of all nodes in screen coordinates.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Canvas.CanvasLayout.PinScreenPositions">
+            <summary>Pin attachment points in screen coordinates.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Canvas.CanvasLayout.ConnectedInputPins">
+            <summary>Pre-computed set of input pins that have at least one wire connected.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Canvas.CanvasLayoutBuilder">
+            <summary>
+            Computes the screen-space bounding rect and pin positions for every node
+            in the graph, fills the <see cref="T:NodeEditor.Core.Spatial.SpatialIndex"/> used by hit-testing, and
+            records which input pins are covered by at least one wire.
+            </summary>
+        </member>
+        <member name="T:NodeEditor.UI.Canvas.CanvasRenderer">
+             <summary>
+             Top-level canvas renderer. Orchestrates the full per-frame pipeline:
+             layout build → hit-test → input handling → draw phases (grid, comments-back,
+             wires, nodes, comments-front, pending wire, marquee).
+            
+             Usage: create once and call <see cref="M:NodeEditor.UI.Canvas.CanvasRenderer.Render(NodeEditor.Core.View.GraphView)"/> every ImGui frame while the
+             canvas child window context is active.
+             </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Canvas.CanvasRenderer.Render(NodeEditor.Core.View.GraphView)">
+            <summary>
+            Render one frame of the node-editor canvas. Call this inside an ImGui window
+            (not inside an existing child window). The method opens and closes its own
+            child window to establish a clip/scroll region.
+            </summary>
+            <param name="view">The graph view to render.</param>
+        </member>
+        <member name="T:NodeEditor.UI.Canvas.GridRenderer">
+            <summary>
+            Draws the editor background grid: minor dots every 16 graph units,
+            major dots every 128 graph units. Dots are skipped below
+            <see cref="F:NodeEditor.Core.View.ViewportState.LowZoomThreshold"/> to avoid visual noise.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Canvas.GridRenderer.Draw(NodeEditor.Core.View.GraphView,ImGuiNET.ImDrawListPtr,System.Numerics.Vector2,System.Numerics.Vector2)">
+            <summary>Draw the grid into the provided draw list.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Canvas.HitTester">
+            <summary>
+            Performs per-frame hit-testing against the spatial index and pin positions
+            and updates <see cref="P:NodeEditor.Core.View.InteractionState.Hover"/>.
+            Priority (highest first): reroutes, pins, wires, comment headers,
+            node bodies, comment bodies, empty canvas.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Canvas.HitTester.UpdateHover(NodeEditor.Core.View.GraphView,NodeEditor.Core.Spatial.SpatialIndex,System.Collections.Generic.Dictionary{NodeEditor.Primitives.PinId,System.Numerics.Vector2})">
+            <summary>Run hit-testing and store the result into <see cref="P:NodeEditor.Core.View.InteractionState.Hover"/>.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Canvas.NodeRenderer">
+            <summary>
+            Draws node bodies: header strip, title, subtitle, pin glyphs/labels,
+            and inline default-value editors for unconnected input data pins.
+            Applies selection, error, warning, and debug-execution outlines.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Canvas.NodeRenderer.DrawAll(NodeEditor.Core.View.GraphView,ImGuiNET.ImDrawListPtr,System.Collections.Generic.Dictionary{NodeEditor.Primitives.NodeId,NodeEditor.Primitives.RectF},System.Collections.Generic.Dictionary{NodeEditor.Primitives.PinId,System.Numerics.Vector2},System.Collections.Generic.HashSet{NodeEditor.Primitives.PinId})">
+            <summary>Draw all nodes and their inline editors.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Canvas.PinRenderer">
+            <summary>
+            Draws pin glyphs (circle for data, arrow-triangle for exec) and their labels.
+            Also draws the type-color fill to distinguish connected vs unconnected pins.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Canvas.PinRenderer.DrawNodePins(NodeEditor.Core.View.GraphView,ImGuiNET.ImDrawListPtr,NodeEditor.Core.Interfaces.INodeModel,System.Collections.Generic.Dictionary{NodeEditor.Primitives.PinId,System.Numerics.Vector2},System.Collections.Generic.HashSet{NodeEditor.Primitives.PinId})">
+            <summary>Draw all visible pin glyphs and labels for a node.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Canvas.WireRenderer">
+            <summary>
+            Draws all wires (links) and reroute waypoints. Execution wires get a
+            midpoint arrowhead; data wires don't. Selected wires are thicker.
+            Dashed wires use a shortened segment approximation.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Canvas.WireRenderer.DrawAll(NodeEditor.Core.View.GraphView,ImGuiNET.ImDrawListPtr,System.Collections.Generic.Dictionary{NodeEditor.Primitives.PinId,System.Numerics.Vector2})">
+            <summary>Draw all links from <see cref="P:NodeEditor.Core.View.GraphView.Model"/>.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.MiniEditors.ArrayPinEditor">
+            <summary>
+            Inline editor for <c>Array&lt;T&gt;</c> pins. Shows a button with the element
+            count that opens a popup with per-element editors plus add/remove controls.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.MiniEditors.ArrayPinEditor.Draw(System.Object@,NodeEditor.Core.Interfaces.DefaultEditorContext,System.Boolean@)">
+            <inheritdoc/>
+        </member>
+        <member name="T:NodeEditor.UI.MiniEditors.AssetPinEditor">
+            <summary>
+            Inline editor for asset-reference pins. Shows the asset name in a button;
+            clicking opens the host asset picker. Hosts should register a type-specific
+            override with picker-registry access for full UX.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.MiniEditors.AssetPinEditor.Draw(System.Object@,NodeEditor.Core.Interfaces.DefaultEditorContext,System.Boolean@)">
+            <inheritdoc/>
+        </member>
+        <member name="T:NodeEditor.UI.MiniEditors.BoolPinEditor">
+            <summary>
+            Inline editor for <c>bool</c> pins. Renders a checkbox;
+            commits immediately on every click.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.MiniEditors.BoolPinEditor.Draw(System.Object@,NodeEditor.Core.Interfaces.DefaultEditorContext,System.Boolean@)">
+            <inheritdoc/>
+        </member>
+        <member name="T:NodeEditor.UI.MiniEditors.ColorPinEditor">
+            <summary>
+            Inline editor for color (RGBA <see cref="T:System.Numerics.Vector4"/>) pins. Shows a small
+            color swatch that opens <c>ImGui.ColorPicker4</c> in a popup on click.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.MiniEditors.ColorPinEditor.Draw(System.Object@,NodeEditor.Core.Interfaces.DefaultEditorContext,System.Boolean@)">
+            <inheritdoc/>
+        </member>
+        <member name="T:NodeEditor.UI.MiniEditors.DragFloatWithExpression">
+            <summary>
+            Drop-in replacement for <c>ImGui.DragFloat</c> / <c>ImGui.DragInt</c> that,
+            on double-click, switches to an <c>InputText</c> widget where the user may type
+            an arithmetic expression (<c>pi*2</c>, <c>sin(45 deg)</c>, etc.).
+            On commit (Enter or focus-out), the expression is evaluated via
+            <see cref="T:NodeEditor.Core.Expression.ExpressionEvaluator"/>; on failure the previous value is restored
+            and an error tooltip is shown for 2 seconds.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.MiniEditors.DragFloatWithExpression.Render(System.String,System.Single@,System.Single,System.String)">
+            <summary>Render a drag-float widget with expression-aware text editing.</summary>
+            <param name="label">ImGui widget label (## prefix to suppress display).</param>
+            <param name="value">Current value — modified when the user changes it.</param>
+            <param name="speed">Drag speed per pixel.</param>
+            <param name="format">Printf-style display format.</param>
+            <returns>True when the value changed this frame.</returns>
+        </member>
+        <member name="M:NodeEditor.UI.MiniEditors.DragFloatWithExpression.Render(System.String,System.Int32@,System.Single)">
+            <summary>Render a drag-int widget with expression-aware text editing.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.MiniEditors.EntityPinEditor">
+            <summary>
+            Inline editor for entity-reference pins. Renders a picker button that
+            displays the entity label if available. Full picker integration requires the
+            host to register a custom editor with access to the picker registry; this
+            implementation provides the basic button scaffold.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.MiniEditors.EntityPinEditor.Draw(System.Object@,NodeEditor.Core.Interfaces.DefaultEditorContext,System.Boolean@)">
+            <inheritdoc/>
+        </member>
+        <member name="T:NodeEditor.UI.MiniEditors.EnumPinEditor">
+            <summary>
+            Inline editor for enum pins. Uses an ImGui Combo populated from an
+            optional <see cref="T:NodeEditor.Core.Interfaces.IEnumValueProvider"/>. Without a provider, falls back
+            to a DragInt showing the raw integer value.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.MiniEditors.EnumPinEditor.#ctor(NodeEditor.Core.Interfaces.IEnumValueProvider)">
+            <param name="provider">
+            Host-supplied enum value source. Pass <see langword="null"/> when registering
+            a generic fallback; hosts should re-register with a real provider per enum type.
+            </param>
+        </member>
+        <member name="M:NodeEditor.UI.MiniEditors.EnumPinEditor.Draw(System.Object@,NodeEditor.Core.Interfaces.DefaultEditorContext,System.Boolean@)">
+            <inheritdoc/>
+        </member>
+        <member name="T:NodeEditor.UI.MiniEditors.FloatPinEditor">
+            <summary>
+            Inline editor for <c>float</c> / <c>System.Single</c> pins. Uses a drag-float
+            widget with expression support on double-click. Commits on mouse release.
+            Respects <see cref="P:NodeEditor.Core.Interfaces.PinDefaultMetadata.Units"/> as a suffix label when set.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.MiniEditors.FloatPinEditor.Draw(System.Object@,NodeEditor.Core.Interfaces.DefaultEditorContext,System.Boolean@)">
+            <inheritdoc/>
+        </member>
+        <member name="T:NodeEditor.UI.MiniEditors.GuidPinEditor">
+            <summary>
+            Inline editor for <c>Guid</c> pins. Renders a truncated read-only button
+            showing the first 4 and last 4 hex chars. Clicking opens the host picker if
+            a <see cref="P:NodeEditor.Core.Interfaces.PinDefaultMetadata.PickerSourceKey"/> is configured.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.MiniEditors.GuidPinEditor.Draw(System.Object@,NodeEditor.Core.Interfaces.DefaultEditorContext,System.Boolean@)">
+            <inheritdoc/>
+        </member>
+        <member name="T:NodeEditor.UI.MiniEditors.IntPinEditor">
+            <summary>
+            Inline editor for <c>int</c> / <c>System.Int32</c> pins. Uses a drag-int
+            widget with expression support on double-click. Commits on mouse release.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.MiniEditors.IntPinEditor.Draw(System.Object@,NodeEditor.Core.Interfaces.DefaultEditorContext,System.Boolean@)">
+            <inheritdoc/>
+        </member>
+        <member name="T:NodeEditor.UI.MiniEditors.PinDefaultValueEditorRegistry">
+            <summary>
+            Concrete implementation of <see cref="T:NodeEditor.Core.Interfaces.IPinDefaultValueEditorRegistry"/>.
+            Call <see cref="M:NodeEditor.UI.MiniEditors.PinDefaultValueEditorRegistry.CreateWithBuiltins"/> to get a pre-populated instance.
+            Hosts may override any entry or add new ones after construction.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.MiniEditors.PinDefaultValueEditorRegistry.Register(NodeEditor.Primitives.TypeKey,NodeEditor.Core.Interfaces.IPinDefaultValueEditor)">
+            <inheritdoc/>
+        </member>
+        <member name="M:NodeEditor.UI.MiniEditors.PinDefaultValueEditorRegistry.RegisterFallback(NodeEditor.Core.Interfaces.IPinDefaultValueEditor)">
+            <inheritdoc/>
+        </member>
+        <member name="M:NodeEditor.UI.MiniEditors.PinDefaultValueEditorRegistry.GetEditor(NodeEditor.Primitives.TypeKey)">
+            <inheritdoc/>
+        </member>
+        <member name="M:NodeEditor.UI.MiniEditors.PinDefaultValueEditorRegistry.CreateWithBuiltins">
+            <summary>
+            Create a registry pre-populated with the built-in type editors:
+            <c>bool</c>, <c>int</c>, <c>float</c>, <c>string</c>,
+            <c>Vector2/3/4</c>, <c>Quaternion</c>, <c>Color</c>, and <c>Guid</c>.
+            </summary>
+        </member>
+        <member name="T:NodeEditor.UI.MiniEditors.QuaternionPinEditor">
+            <summary>
+            Inline editor for <c>Quaternion</c> pins. Exposes yaw, pitch, and roll in
+            degrees (matching Unreal Blueprint UX) and converts to/from the quaternion
+            representation internally. Each axis uses <see cref="T:NodeEditor.UI.MiniEditors.DragFloatWithExpression"/>.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.MiniEditors.QuaternionPinEditor.Draw(System.Object@,NodeEditor.Core.Interfaces.DefaultEditorContext,System.Boolean@)">
+            <inheritdoc/>
+        </member>
+        <member name="T:NodeEditor.UI.MiniEditors.StringPinEditor">
+            <summary>
+            Inline editor for <c>string</c> / <c>System.String</c> pins.
+            Single-line by default; commits on Enter or focus-out; Escape reverts.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.MiniEditors.StringPinEditor.Draw(System.Object@,NodeEditor.Core.Interfaces.DefaultEditorContext,System.Boolean@)">
+            <inheritdoc/>
+        </member>
+        <member name="T:NodeEditor.UI.MiniEditors.StructPinEditor">
+            <summary>
+            Inline editor for composite struct pins. In composite mode renders a
+            collapsible tree header; in split mode the canvas exposes individual
+            field pins instead and this editor renders nothing.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.MiniEditors.StructPinEditor.Draw(System.Object@,NodeEditor.Core.Interfaces.DefaultEditorContext,System.Boolean@)">
+            <inheritdoc/>
+        </member>
+        <member name="T:NodeEditor.UI.MiniEditors.VectorPinEditor">
+            <summary>
+            Inline editor for <c>Vector2</c>, <c>Vector3</c>, and <c>Vector4</c> pins.
+            Renders N drag-float fields packed horizontally; each field uses
+            <see cref="T:NodeEditor.UI.MiniEditors.DragFloatWithExpression"/> for expression-aware text editing.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.MiniEditors.VectorPinEditor.#ctor(System.Int32)">
+            <param name="dimension">Number of components: 2, 3, or 4.</param>
+        </member>
+        <member name="M:NodeEditor.UI.MiniEditors.VectorPinEditor.Draw(System.Object@,NodeEditor.Core.Interfaces.DefaultEditorContext,System.Boolean@)">
+            <inheritdoc/>
+        </member>
+        <member name="T:NodeEditor.UI.Util.ImDrawListExtensions">
+            <summary>
+            Extension helpers for <see cref="T:ImGuiNET.ImDrawListPtr"/> that keep canvas-rendering
+            code expressive without repeating low-level math.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Util.ImDrawListExtensions.AddBezierWithArrow(ImGuiNET.ImDrawListPtr,System.Numerics.Vector2,System.Numerics.Vector2,System.Numerics.Vector2,System.Numerics.Vector2,System.UInt32,System.Single,System.Single,System.Int32)">
+            <summary>
+            Draw a cubic bezier and place a filled triangle arrowhead at its midpoint.
+            Used for execution-flow wires.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Util.ImDrawListExtensions.AddCircleFilledOutline(ImGuiNET.ImDrawListPtr,System.Numerics.Vector2,System.Single,System.UInt32,System.UInt32,System.Single)">
+            <summary>
+            Draw a circle filled with <paramref name="fillColor"/> then outlined
+            with <paramref name="outlineColor"/>. One call vs two.
+            </summary>
+        </member>
+        <member name="T:NodeEditor.UI.Util.ImGuiPushIdScope">
+            <summary>
+            RAII wrapper that calls <c>ImGui.PushID</c> on construction and
+            <c>ImGui.PopID</c> on disposal. Use with <c>using var _ = new ImGuiPushIdScope(…)</c>
+            to get stable ImGui IDs inside per-node render loops.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Util.ImGuiPushIdScope.#ctor(System.String)">
+            <summary>Push a string-based ID scope.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Util.ImGuiPushIdScope.#ctor(System.Int32)">
+            <summary>Push an integer ID scope.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Util.ImGuiPushIdScope.Dispose">
+            <inheritdoc/>
+        </member>
     </members>
 </doc>

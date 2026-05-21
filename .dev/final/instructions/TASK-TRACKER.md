@@ -36,9 +36,9 @@ index), theme/timing constants. Fully unit-testable.
 **Goal:** All editor-side state (viewport, selection, transient
 interaction) lives in `NodeEditor.Core`, still ImGui-free, testable via
 `FakeInputSource`.
-- [ ] **TASK-P2-001** ViewportState + SelectionState — [details](./03-03-tasks-viewmodel.md#t-09--viewportstate-and-selectionstate)
-- [ ] **TASK-P2-002** InteractionState — [details](./03-03-tasks-viewmodel.md#t-10--interactionstate)
-- [ ] **TASK-P2-003** GraphView Aggregator — [details](./03-03-tasks-viewmodel.md#t-11--graphview-aggregator)
+- [x] **TASK-P2-001** ViewportState + SelectionState — [details](./03-03-tasks-viewmodel.md#t-09--viewportstate-and-selectionstate)
+- [x] **TASK-P2-002** InteractionState — [details](./03-03-tasks-viewmodel.md#t-10--interactionstate)
+- [x] **TASK-P2-003** GraphView Aggregator — [details](./03-03-tasks-viewmodel.md#t-11--graphview-aggregator)
 
 ---
 
@@ -82,9 +82,12 @@ every spec'd feature with at least one scenario.
 
 ## Phase 7 — Polish Features
 **Goal:** Bookmark slots and hot-reload visual feedback. Both are
-small, both are highly visible.
+small, both are highly visible. Then extend the demo to cover the
+remaining authoring/refactor/multi-tab/find/comment/big-graph features
+that aren't reachable through S01–S14.
 - [ ] **TASK-P7-001** Bookmarks (Ctrl+1..9 jump, Ctrl+Shift+1..9 set) — [details](./03-11-tasks-final.md#t-23--bookmarks)
 - [ ] **TASK-P7-002** Hot-Reload Badges + Toast — [details](./03-11-tasks-final.md#t-24--hot-reload-badges)
+- [ ] **TASK-P7-003** Extended Demo Scenarios (S15–S33: functions, macros, custom events, dispatchers, variables, multi-tab, refactor, find, bookmarks, comments, hot-reload conflict, big graph) — [details](./03-12-task-extended-scenarios.md)
 
 ---
 
@@ -106,11 +109,11 @@ updated, every checklist item in the acceptance pass green.
 | Phase 4 — Panels, Picker, Search | 5 | ~2,000 |
 | Phase 5 — Action API | 1 | ~350 |
 | Phase 6 — Demo Application | 3 | ~1,400 |
-| Phase 7 — Polish Features | 2 | ~400 |
+| Phase 7 — Polish Features | 3 | ~2,000 |
 | Phase 8 — Final | 1 | (cleanup) |
-| **Total** | **25** | **~8,250 + ~500 tests** |
+| **Total** | **26** | **~9,850 + ~500 tests** |
 
-Estimated effort for a focused agent: **3–5 days**.
+Estimated effort for a focused agent: **4–6 days**.
 
 ## Dependencies between phases
 
