@@ -14,7 +14,7 @@ Tracks implementation progress across the 25 tasks in this package.
 ## Phase 0 — Infrastructure
 **Goal:** Solution compiles, all six projects exist with correct
 dependencies, nothing is implemented yet but `dotnet build` succeeds.
-- [ ] **TASK-P0-001** Solution Scaffolding — [details](./03-01-task-scaffolding.md)
+- [x] **TASK-P0-001** Solution Scaffolding — [details](./03-01-task-scaffolding.md)
 
 ---
 
@@ -22,13 +22,13 @@ dependencies, nothing is implemented yet but `dotnet build` succeeds.
 **Goal:** All pure-logic, zero-ImGui code lands. IDs, host interfaces,
 command records, algorithms (fuzzy matcher, expression evaluator, spatial
 index), theme/timing constants. Fully unit-testable.
-- [ ] **TASK-P1-001** Primitives (IDs, enums, IdGenerator, RectF) — [details](./03-02-tasks-kernel-layer.md#t-02--primitives)
-- [ ] **TASK-P1-002** Host Contract Interfaces — [details](./03-02-tasks-kernel-layer.md#t-03--host-contract-interfaces)
-- [ ] **TASK-P1-003** Commands and Undo Stack — [details](./03-02-tasks-kernel-layer.md#t-04--commands-and-undo)
-- [ ] **TASK-P1-004** Fuzzy Matcher + Tests — [details](./03-02-tasks-kernel-layer.md#t-05--fuzzy-matcher)
-- [ ] **TASK-P1-005** Expression Evaluator + Tests — [details](./03-02-tasks-kernel-layer.md#t-06--expression-evaluator)
-- [ ] **TASK-P1-006** Spatial Index + Tests — [details](./03-02-tasks-kernel-layer.md#t-07--spatial-index)
-- [ ] **TASK-P1-007** Timing / Theme / Catalog Constants — [details](./03-02-tasks-kernel-layer.md#t-08--timing--theme--catalog-constants)
+- [x] **TASK-P1-001** Primitives (IDs, enums, IdGenerator, RectF) — [details](./03-02-tasks-kernel-layer.md#t-02--primitives)
+- [x] **TASK-P1-002** Host Contract Interfaces — [details](./03-02-tasks-kernel-layer.md#t-03--host-contract-interfaces)
+- [x] **TASK-P1-003** Commands and Undo Stack — [details](./03-02-tasks-kernel-layer.md#t-04--commands-and-undo)
+- [x] **TASK-P1-004** Fuzzy Matcher + Tests — [details](./03-02-tasks-kernel-layer.md#t-05--fuzzy-matcher)
+- [x] **TASK-P1-005** Expression Evaluator + Tests — [details](./03-02-tasks-kernel-layer.md#t-06--expression-evaluator)
+- [x] **TASK-P1-006** Spatial Index + Tests — [details](./03-02-tasks-kernel-layer.md#t-07--spatial-index)
+- [x] **TASK-P1-007** Timing / Theme / Catalog Constants — [details](./03-02-tasks-kernel-layer.md#t-08--timing--theme--catalog-constants)
 
 ---
 

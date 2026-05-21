@@ -1048,5 +1048,245 @@
         <member name="F:NodeEditor.Core.TimingConstants.LowZoomThreshold">
             <summary>Below this zoom, render simplified.</summary>
         </member>
+        <member name="T:NodeEditor.Core.View.GraphView">
+            <summary>
+            Top-level aggregator for a single graph being edited.
+            Holds references to the host (read-only model + services), and owns the editor-side
+            transient state (viewport, selection, interaction). Hands itself to the UI layer.
+            Editor mutations always go through <see cref="P:NodeEditor.Core.View.GraphView.Commands"/>; the editor never writes to <see cref="P:NodeEditor.Core.View.GraphView.Model"/> directly.
+            </summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.GraphView.Model">
+            <summary>Host-provided read-only view of the graph data.</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.GraphView.Commands">
+            <summary>Host command sink. All mutations go here.</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.GraphView.Validator">
+            <summary>Connection validation rules.</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.GraphView.TypeSystem">
+            <summary>Type system (colors, compatibility, cast resolution).</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.GraphView.Catalog">
+            <summary>Node catalog (right-click menu, contextual picker, search).</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.GraphView.Host">
+            <summary>Host services bag (clipboard, icons, diagnostics, debug session, theme, picker registry, input).</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.GraphView.Viewport">
+            <summary>Viewport (pan/zoom).</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.GraphView.Selection">
+            <summary>Selection set.</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.GraphView.Interaction">
+            <summary>Transient interaction state.</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.GraphView.Undo">
+            <summary>
+            Undo/redo stack. Owned by the editor (not the host) so the editor can group
+            multi-step authoring actions into single user-visible operations.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.Core.View.GraphView.Execute(NodeEditor.Core.Commands.GraphCommand,NodeEditor.Core.Commands.GraphCommand,System.String)">
+            <summary>
+            Convenience: apply a command through the undo stack, recording the supplied inverse.
+            Callers snapshot inverse state <em>before</em> calling Execute.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.Core.View.GraphView.UndoLast">
+            <summary>Undo the most recent operation (if any).</summary>
+        </member>
+        <member name="M:NodeEditor.Core.View.GraphView.RedoLast">
+            <summary>Redo the most recently undone operation (if any).</summary>
+        </member>
+        <member name="T:NodeEditor.Core.View.HoverInfo">
+            <summary>
+            What the cursor is currently over. Computed every frame by the canvas renderer
+            during hit-testing and consumed by event-handling code.
+            Mutually exclusive: only one of the IDs is non-empty.
+            </summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.HoverInfo.CommentZone">
+            <summary>For comments: whether the cursor is on the title bar (drag), the body, or a resize handle.</summary>
+        </member>
+        <member name="T:NodeEditor.Core.View.InteractionMode">
+            <summary>
+            Top-level state of the canvas interaction state machine.
+            Exactly one mode is active at any time.
+            </summary>
+        </member>
+        <member name="F:NodeEditor.Core.View.InteractionMode.Idle">
+            <summary>Mouse is hovering or idle; clicks may trigger transitions.</summary>
+        </member>
+        <member name="F:NodeEditor.Core.View.InteractionMode.Panning">
+            <summary>RMB-drag panning.</summary>
+        </member>
+        <member name="F:NodeEditor.Core.View.InteractionMode.DraggingNodes">
+            <summary>Selected nodes are being dragged (drag threshold has been crossed).</summary>
+        </member>
+        <member name="F:NodeEditor.Core.View.InteractionMode.DraggingReroutes">
+            <summary>One or more reroute waypoints are being dragged.</summary>
+        </member>
+        <member name="F:NodeEditor.Core.View.InteractionMode.DraggingComment">
+            <summary>A comment box is being moved.</summary>
+        </member>
+        <member name="F:NodeEditor.Core.View.InteractionMode.ResizingComment">
+            <summary>A comment box is being resized.</summary>
+        </member>
+        <member name="F:NodeEditor.Core.View.InteractionMode.MarqueeSelecting">
+            <summary>LMB-drag from empty canvas is drawing a marquee selection rect.</summary>
+        </member>
+        <member name="F:NodeEditor.Core.View.InteractionMode.PendingWire">
+            <summary>LMB-drag from a pin is drawing a pending connection wire.</summary>
+        </member>
+        <member name="F:NodeEditor.Core.View.InteractionMode.PickerOpen">
+            <summary>The contextual node-creation picker is open and consuming input.</summary>
+        </member>
+        <member name="T:NodeEditor.Core.View.InteractionState">
+            <summary>
+            All transient editor state that is not in the host data model and not in the viewport.
+            Includes the current interaction mode, what the cursor is over, drag bookkeeping
+            (per-node graph-space overrides during a drag), and the pending-wire descriptor.
+            </summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.InteractionState.DragStartScreen">
+            <summary>Screen position where the current LMB drag (if any) began.</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.InteractionState.DragStartGraph">
+            <summary>Graph-space position where the current LMB drag began.</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.InteractionState.DragThresholdCrossed">
+            <summary>True once the cursor has moved past the drag threshold since LMB-down.</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.InteractionState.MarqueeGraph">
+            <summary>Marquee rect in graph space (only valid while Mode == MarqueeSelecting).</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.InteractionState.MarqueeTouchMode">
+            <summary>Whether the marquee uses touch (Alt) instead of fully-enclosed mode.</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.InteractionState.DragOverridePositions">
+            <summary>
+            Per-node graph-space position overrides while a drag is in progress.
+            The renderer reads from here in preference to the host model; on mouse-up
+            the final positions are flushed via a single MoveNodes command and this dict is cleared.
+            </summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.InteractionState.CommentDragContents">
+            <summary>Snapshot of nodes that are dragged together with a comment ("contained" set, captured at drag-start).</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.InteractionState.PendingWire">
+            <summary>The pending-wire descriptor, set while Mode == PendingWire.</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.InteractionState.ContextMenuScreen">
+            <summary>Screen position of the right-click that opened a context menu (if any).</summary>
+        </member>
+        <member name="M:NodeEditor.Core.View.InteractionState.ResetToIdle">
+            <summary>Reset to Idle: clears mode, drag overrides, marquee, pending wire.</summary>
+        </member>
+        <member name="T:NodeEditor.Core.View.PendingWire">
+            <summary>
+            State for a wire currently being dragged from a source pin.
+            While set, <see cref="F:NodeEditor.Core.View.InteractionMode.PendingWire"/> is active.
+            </summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.PendingWire.SourcePin">
+            <summary>Pin the drag started from.</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.PendingWire.CursorGraph">
+            <summary>Current mouse position in graph space (updated every frame).</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.PendingWire.CandidateTarget">
+            <summary>
+            Optional candidate target pin under the cursor (within snap radius).
+            Snap radius defined in <c>TimingConstants.PinSnapRadiusPx</c>.
+            </summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.PendingWire.CandidateValid">
+            <summary>Whether the candidate is a valid connection per the validator.</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.PendingWire.CandidateNeedsCast">
+            <summary>Whether the candidate would require an auto-cast (validator returned ValidWithCast).</summary>
+        </member>
+        <member name="T:NodeEditor.Core.View.SelectionEntry">
+            <summary>Identifies one selectable element in the editor.</summary>
+        </member>
+        <member name="T:NodeEditor.Core.View.SelectionState">
+            <summary>
+            Mutable selection of editor elements. Equality is by identity, not order.
+            Methods follow the click-modifier semantics in the canvas spec:
+            no modifier → replace; Shift → add; Ctrl → toggle.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.Core.View.SelectionState.ReplaceWith(NodeEditor.Core.View.SelectionEntry)">
+            <summary>Replace the selection with exactly one entry.</summary>
+        </member>
+        <member name="M:NodeEditor.Core.View.SelectionState.ReplaceWith(System.Collections.Generic.IEnumerable{NodeEditor.Core.View.SelectionEntry})">
+            <summary>Replace the selection with a set of entries.</summary>
+        </member>
+        <member name="M:NodeEditor.Core.View.SelectionState.Add(NodeEditor.Core.View.SelectionEntry)">
+            <summary>Add an entry (Shift+click semantics).</summary>
+        </member>
+        <member name="M:NodeEditor.Core.View.SelectionState.AddRange(System.Collections.Generic.IEnumerable{NodeEditor.Core.View.SelectionEntry})">
+            <summary>Add many entries.</summary>
+        </member>
+        <member name="M:NodeEditor.Core.View.SelectionState.Toggle(NodeEditor.Core.View.SelectionEntry)">
+            <summary>Toggle an entry (Ctrl+click semantics).</summary>
+        </member>
+        <member name="M:NodeEditor.Core.View.SelectionState.Remove(NodeEditor.Core.View.SelectionEntry)">
+            <summary>Remove an entry if present.</summary>
+        </member>
+        <member name="M:NodeEditor.Core.View.SelectionState.Clear">
+            <summary>Clear the selection.</summary>
+        </member>
+        <member name="T:NodeEditor.Core.View.ViewportState">
+            <summary>
+            Editor viewport: pan (graph-space offset of canvas origin) and zoom (uniform scale).
+            Pure data plus deterministic transforms. No rendering, no input handling.
+            </summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.ViewportState.PanGraph">
+            <summary>Graph-space coordinate that maps to the canvas screen origin (top-left of canvas region).</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.ViewportState.Zoom">
+            <summary>Uniform scale factor. 1.0 = native. Clamped to [<see cref="F:NodeEditor.Core.View.ViewportState.MinZoom"/>, <see cref="F:NodeEditor.Core.View.ViewportState.MaxZoom"/>].</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.ViewportState.CanvasScreenOrigin">
+            <summary>Top-left of the canvas region in screen coordinates (set by the renderer each frame).</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.ViewportState.CanvasScreenSize">
+            <summary>Size of the canvas region in screen pixels (set by the renderer each frame).</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.ViewportState.IsLowZoom">
+            <summary>True when zoom is below the simplified-rendering threshold.</summary>
+        </member>
+        <member name="M:NodeEditor.Core.View.ViewportState.GraphToScreen(System.Numerics.Vector2)">
+            <summary>Convert a graph-space point to screen coordinates.</summary>
+        </member>
+        <member name="M:NodeEditor.Core.View.ViewportState.ScreenToGraph(System.Numerics.Vector2)">
+            <summary>Convert a screen-space point to graph coordinates.</summary>
+        </member>
+        <member name="M:NodeEditor.Core.View.ViewportState.Pan(System.Numerics.Vector2)">
+            <summary>Apply a pan delta in graph-space units.</summary>
+        </member>
+        <member name="M:NodeEditor.Core.View.ViewportState.PanScreen(System.Numerics.Vector2)">
+            <summary>Apply a pan delta in screen-space pixels (scaled by current zoom).</summary>
+        </member>
+        <member name="M:NodeEditor.Core.View.ViewportState.ZoomAt(System.Numerics.Vector2,System.Single)">
+            <summary>
+            Zoom by a multiplicative factor centered on the given screen position.
+            The graph point under <paramref name="anchorScreen"/> stays anchored after the zoom.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.Core.View.ViewportState.Reset">
+            <summary>Reset the viewport to identity (zoom=1, pan=0).</summary>
+        </member>
+        <member name="M:NodeEditor.Core.View.ViewportState.FrameRect(NodeEditor.Primitives.RectF,System.Single)">
+            <summary>
+            Frame a graph-space rect into the canvas (centered, with margin).
+            Zoom is clamped to <see cref="F:NodeEditor.Core.View.ViewportState.MaxZoom"/> so framing a single point doesn't max out.
+            </summary>
+        </member>
     </members>
 </doc>
