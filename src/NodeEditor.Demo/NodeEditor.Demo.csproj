@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>NodeEditor.Demo</RootNamespace>
+    <AssemblyName>NodeEditor.Demo</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NodeEditor.UI\NodeEditor.UI.csproj" />
+    <PackageReference Include="Raylib-cs" Version="6.1.1" />
+    <PackageReference Include="rlImGui-cs" Version="2.1.0" />
+  </ItemGroup>
+</Project>
