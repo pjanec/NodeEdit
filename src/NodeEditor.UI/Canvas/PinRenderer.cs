@@ -62,9 +62,13 @@ internal sealed class PinRenderer
                 : ImGui.GetColorU32(typeColor);
 
             if (isExec)
+            {
                 DrawExecGlyph(dl, screenPos, zoom, fillColor, outlineColor, connected, hovered);
+            }
             else
-                dl.AddCircleFilledOutline(screenPos, currentRadius, fillColor, outlineColor, strokeThickness);
+            {
+                DrawDataGlyph(dl, pin.Shape, screenPos, currentRadius, fillColor, outlineColor, strokeThickness, connected);
+            }
 
             // Pin label
             if (!view.Viewport.IsLowZoom)
@@ -91,6 +95,51 @@ internal sealed class PinRenderer
             dl.AddTriangleFilled(tl, bl, tip, fill);
         else
             dl.AddTriangle(tl, bl, tip, outline, hovered ? 2f : 1.5f);
+    }
+
+    private static void DrawDataGlyph(
+        ImDrawListPtr dl,
+        PinShape shape,
+        Vector2 center,
+        float radius,
+        uint fill,
+        uint outline,
+        float strokeThickness,
+        bool connected)
+    {
+        switch (shape)
+        {
+            case PinShape.Diamond:
+            {
+                var p1 = center + new Vector2(0f, -radius);
+                var p2 = center + new Vector2(radius, 0f);
+                var p3 = center + new Vector2(0f, radius);
+                var p4 = center + new Vector2(-radius, 0f);
+                if (connected) dl.AddQuadFilled(p1, p2, p3, p4, fill);
+                dl.AddQuad(p1, p2, p3, p4, outline, strokeThickness);
+                break;
+            }
+            case PinShape.Square:
+            {
+                var pMin = center - new Vector2(radius, radius);
+                var pMax = center + new Vector2(radius, radius);
+                if (connected) dl.AddRectFilled(pMin, pMax, fill);
+                dl.AddRect(pMin, pMax, outline, 0f, ImDrawFlags.None, strokeThickness);
+                break;
+            }
+            case PinShape.Pentagon:
+                if (connected) dl.AddNgonFilled(center, radius, fill, 5);
+                dl.AddNgon(center, radius, outline, 5, strokeThickness);
+                break;
+            case PinShape.Triangle:
+                if (connected) dl.AddNgonFilled(center, radius, fill, 3);
+                dl.AddNgon(center, radius, outline, 3, strokeThickness);
+                break;
+            case PinShape.Circle:
+            default:
+                dl.AddCircleFilledOutline(center, radius, fill, outline, strokeThickness);
+                break;
+        }
     }
 
     private static void DrawPinLabel(

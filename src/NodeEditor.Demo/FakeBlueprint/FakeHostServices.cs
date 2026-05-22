@@ -35,7 +35,7 @@ public sealed class FakeHostServices : IEditorHostServices
         Graph          = graph;
         NodeCatalog_   = new FakeNodeCatalog();
         TypeSystem_    = new FakeTypeSystem();
-        CommandSink_   = new FakeCommandSink(graph, NodeCatalog_);
+        CommandSink_   = new FakeCommandSink(graph, NodeCatalog_, TypeSystem_);
         Validator      = new FakeLinkValidator(graph);
         MyBlueprint    = new FakeMyBlueprintModel();
         Input_         = new FakeInputSource();

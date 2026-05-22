@@ -36,7 +36,13 @@ public sealed class FakeTypeSystem : ITypeSystem
         => _types.TryGetValue(key.Id, out var t) ? t.Color : new Vector4(0.8f, 0.8f, 0.8f, 1f);
 
     public PinShape GetPinShape(TypeKey key, ContainerKind container)
-        => container == ContainerKind.Array ? PinShape.Diamond : PinShape.Circle;
+        => container switch
+        {
+            ContainerKind.Array => PinShape.Diamond,
+            ContainerKind.Map   => PinShape.Square,
+            ContainerKind.Set   => PinShape.Pentagon,
+            _                   => PinShape.Circle,
+        };
 
     public IPinDefaultValueEditor? GetDefaultEditor(TypeKey key) => null;
 
