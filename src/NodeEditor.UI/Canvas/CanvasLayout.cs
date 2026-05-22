@@ -90,7 +90,7 @@ internal sealed class CanvasLayoutBuilder
             for (int i = 0; i < inputPins.Count; i++)
             {
                 float offsetYGu = headerHt + PinTopPadGu + i * PinRowHeightGu + PinRowHeightGu * 0.5f;
-                var pinGraphPos = graphPos + new Vector2(0f, offsetYGu);
+                var pinGraphPos = graphPos + new Vector2(NodeHorizPadGu, offsetYGu);
                 layout.PinScreenPositions[inputPins[i].Id] = view.Viewport.GraphToScreen(pinGraphPos);
             }
 
@@ -98,7 +98,7 @@ internal sealed class CanvasLayoutBuilder
             for (int i = 0; i < outputPins.Count; i++)
             {
                 float offsetYGu = headerHt + PinTopPadGu + i * PinRowHeightGu + PinRowHeightGu * 0.5f;
-                var pinGraphPos = graphPos + new Vector2(nodeWGu, offsetYGu);
+                var pinGraphPos = graphPos + new Vector2(nodeWGu - NodeHorizPadGu, offsetYGu);
                 layout.PinScreenPositions[outputPins[i].Id] = view.Viewport.GraphToScreen(pinGraphPos);
             }
         }
