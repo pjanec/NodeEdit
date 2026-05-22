@@ -42,12 +42,15 @@ public sealed class DemoShell
     private double                           _lastElapsed;
 
     private string _lastPick = "(none)";
+    private readonly Dictionary<float, nint> _fonts;
 
-    public DemoShell()
+    public DemoShell(Dictionary<float, nint>? fonts = null)
     {
+        _fonts = fonts ?? new Dictionary<float, nint>();
+
         // Build the initial graph
         _graph = new FakeGraphModel(GraphId.NewId(), "EventGraph");
-        _host  = new FakeHostServices(_graph);
+        _host  = new FakeHostServices(_graph, _fonts);
 
         _view  = CreateView();
 
@@ -253,7 +256,7 @@ public sealed class DemoShell
                             {
                                 _graphContainer.Activate(i);
                                 _graph = _graphContainer.Active;
-                                _host  = new FakeHostServices(_graph);
+                                _host  = new FakeHostServices(_graph, _fonts);
                                 _view  = CreateView();
                                 RebuildPanels();
                             }
@@ -358,14 +361,14 @@ public sealed class DemoShell
 
         // Create a fresh graph + host so we have a catalog for BuildMultiGraph
         _graph = new FakeGraphModel(GraphId.NewId(), "EventGraph");
-        _host  = new FakeHostServices(_graph);
+        _host  = new FakeHostServices(_graph, _fonts);
 
         var container = scenario.BuildMultiGraph(_host.NodeCatalog_, out var customMbModel);
         if (container is not null)
         {
             _graphContainer = container;
             _graph          = container.Active;
-            _host           = new FakeHostServices(_graph);
+            _host           = new FakeHostServices(_graph, _fonts);
             if (customMbModel is not null) _host.OverrideMyBlueprint(customMbModel);
             _view           = CreateView();
         }

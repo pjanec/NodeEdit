@@ -5,6 +5,7 @@
     <IsPackable>false</IsPackable>
     <RootNamespace>NodeEditor.UI.Tests</RootNamespace>
     <IsTestProject>true</IsTestProject>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\NodeEditor.UI\NodeEditor.UI.csproj" />

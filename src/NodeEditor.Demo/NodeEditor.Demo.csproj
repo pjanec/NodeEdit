@@ -5,6 +5,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>NodeEditor.Demo</RootNamespace>
     <AssemblyName>NodeEditor.Demo</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NodeEditor.UI\NodeEditor.UI.csproj" />

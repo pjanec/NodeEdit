@@ -30,7 +30,7 @@ public sealed class FakeHostServices : IEditorHostServices
     public IInputSource        Input       { get; }
     public IEditorTheme        Theme       { get; }
 
-    public FakeHostServices(FakeGraphModel graph)
+    public FakeHostServices(FakeGraphModel graph, Dictionary<float, nint>? fonts = null)
     {
         Graph          = graph;
         NodeCatalog_   = new FakeNodeCatalog();
@@ -54,7 +54,7 @@ public sealed class FakeHostServices : IEditorHostServices
         Icons        = new FakeIconProvider();
         Diagnostics  = new FakeDiagnosticsSink();
         Input        = Input_;
-        Theme        = new FakeEditorTheme();
+        Theme        = new FakeEditorTheme(fonts ?? new Dictionary<float, nint>());
     }
 
     /// <summary>Replace the My Blueprint model (used by multi-graph scenarios).</summary>

@@ -102,10 +102,23 @@ internal sealed class PinRenderer
 
         uint textColor = ImGui.GetColorU32(pin.IsOptional ? theme.TextMuted : theme.TextDefault);
         float offsetX  = PinLabelOffsetX * zoom;
-        Vector2 labelPos = isInput
-            ? pinScreen + new Vector2(offsetX, -ImGui.GetFontSize() * 0.5f)
-            : pinScreen - new Vector2(offsetX + ImGui.CalcTextSize(pin.Label).X, ImGui.GetFontSize() * 0.5f);
+        float targetFontSize = ImGui.GetFontSize() * zoom;
+        nint fontPtr = theme.GetFontForSize(targetFontSize);
+        bool useFont = fontPtr != 0;
 
-        dl.AddText(labelPos, textColor, pin.Label);
+        unsafe
+        {
+            if (useFont) ImGui.PushFont(new ImFontPtr((ImFont*)(void*)fontPtr));
+        }
+
+        var font = ImGui.GetFont();
+        var textSize = font.CalcTextSizeA(targetFontSize, float.MaxValue, 0f, pin.Label);
+        Vector2 labelPos = isInput
+            ? pinScreen + new Vector2(offsetX, -textSize.Y * 0.5f)
+            : pinScreen - new Vector2(offsetX + textSize.X, textSize.Y * 0.5f);
+
+        dl.AddText(font, targetFontSize, labelPos, textColor, pin.Label);
+
+        if (useFont) ImGui.PopFont();
     }
 }

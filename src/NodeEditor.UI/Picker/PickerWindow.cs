@@ -369,4 +369,5 @@ file sealed class DefaultPickerTheme : IEditorTheme
     public float WireThicknessExec         => 3f;
     public float WireThicknessData         => 2f;
     public Vector4 GetCategoryHeaderColor(NodeEditor.Primitives.NodeCategory c) => new(0.2f, 0.2f, 0.3f, 1f);
+    public nint GetFontForSize(float targetPixelSize) => 0;
 }

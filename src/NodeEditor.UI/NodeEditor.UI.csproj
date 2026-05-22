@@ -5,6 +5,7 @@
     <RootNamespace>NodeEditor.UI</RootNamespace>
     <AssemblyName>NodeEditor.UI</AssemblyName>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NodeEditor.Core\NodeEditor.Core.csproj" />

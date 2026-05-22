@@ -109,10 +109,22 @@ internal sealed class NodeRenderer
         float headerH, IEditorTheme theme, float zoom)
     {
         uint textColor = ImGui.GetColorU32(theme.TextDefault);
-        var titleSize  = ImGui.CalcTextSize(node.Title);
-        float centerX  = pMin.X + (pMax.X - pMin.X - titleSize.X) * 0.5f;
-        float centerY  = pMin.Y + (headerH - titleSize.Y) * 0.5f;
-        dl.AddText(new Vector2(MathF.Max(pMin.X + 4f, centerX), centerY), textColor, node.Title);
+        float targetFontSize = ImGui.GetFontSize() * zoom;
+        nint fontPtr = theme.GetFontForSize(targetFontSize);
+        bool useFont = fontPtr != 0;
+
+        unsafe
+        {
+            if (useFont) ImGui.PushFont(new ImFontPtr((ImFont*)(void*)fontPtr));
+        }
+
+        var font = ImGui.GetFont();
+        var titleSize = font.CalcTextSizeA(targetFontSize, float.MaxValue, 0f, node.Title);
+        float centerX = pMin.X + (pMax.X - pMin.X - titleSize.X) * 0.5f;
+        float centerY = pMin.Y + (headerH - titleSize.Y) * 0.5f;
+        dl.AddText(font, targetFontSize, new Vector2(MathF.Max(pMin.X + 4f * zoom, centerX), centerY), textColor, node.Title);
+
+        if (useFont) ImGui.PopFont();
     }
 
     private static void DrawOutlines(
