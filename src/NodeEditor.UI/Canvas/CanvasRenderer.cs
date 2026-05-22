@@ -127,13 +127,6 @@ public sealed class CanvasRenderer
         // 3. Hit-test to update hover info.
         _hitTester.UpdateHover(view, _spatialIndex, _layout.PinScreenPositions);
 
-        // 4. Process input.
-        _input.Handle(view, isCanvasBgActive);
-        if ((view.Host.Input.Modifiers & KeyModifiers.Alt) != 0
-            && view.Interaction.Hover.Kind == HoverKind.Link)
-        {
-            ImGui.SetMouseCursor(ImGuiMouseCursor.NotAllowed);
-        }
 
         // ── Draw phases ───────────────────────────────────────────────────
 
@@ -402,3 +395,4 @@ public sealed class CanvasRenderer
 
     private void OnModelChanged(GraphChangeNotification _) => _spatialDirty = true;
 }
+
