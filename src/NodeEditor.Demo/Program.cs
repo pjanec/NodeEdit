@@ -10,6 +10,7 @@ internal static class Program
     {
         Raylib.SetConfigFlags(ConfigFlags.ResizableWindow | ConfigFlags.VSyncHint);
         Raylib.InitWindow(1600, 1000, "NodeEditor Demo");
+        Raylib.SetExitKey(KeyboardKey.Null);
         Raylib.SetTargetFPS(60);
 
         rlImGui.Setup(darkTheme: true, enableDocking: true);
