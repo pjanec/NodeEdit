@@ -32,13 +32,13 @@ public sealed class PickerWindow
 
     // Entry-driven path (OpenFromRequest).
     private PickerEntry[]? _requestEntries;
-    private Action<PickerResult>? _onPickResult;
+    private System.Action<PickerResult>? _onPickResult;
 
     // Source-driven path (Open from IPickerRegistry).
     private IPickerSourceAdapter? _adapter;
     private IReadOnlyDictionary<string, object?>? _adapterContext;
-    private Action<object>? _onPickRaw;
-    private Action? _onCancel;
+    private System.Action<object>? _onPickRaw;
+    private System.Action? _onCancel;
 
     private readonly PickerState _state = new();
 
@@ -60,7 +60,7 @@ public sealed class PickerWindow
     // ── open (entry-driven) ───────────────────────────────────────────────────
 
     /// <summary>Open the picker from a <see cref="PickerRequest"/>.</summary>
-    public void Open(PickerRequest request, Action<PickerResult> onChosen)
+    public void Open(PickerRequest request, System.Action<PickerResult> onChosen)
     {
         Cancel(); // cancel any open session
 
@@ -90,8 +90,8 @@ public sealed class PickerWindow
         IPickerSourceAdapter adapter,
         string contextKey,
         Vector2 screenPos,
-        Action<object> onPick,
-        Action? onCancel,
+        System.Action<object> onPick,
+        System.Action? onCancel,
         IReadOnlyDictionary<string, object?>? context)
     {
         Cancel(); // cancel any open session

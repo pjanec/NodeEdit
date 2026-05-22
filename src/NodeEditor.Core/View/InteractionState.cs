@@ -40,6 +40,12 @@ public sealed class InteractionState
     /// <summary>Snapshot of nodes that are dragged together with a comment ("contained" set, captured at drag-start).</summary>
     public HashSet<NodeId> CommentDragContents { get; } = new();
 
+    /// <summary>Per-comment graph-space position overrides while a comment drag is in progress.</summary>
+    public Dictionary<CommentId, Vector2> CommentDragOverridePositions { get; } = new();
+
+    /// <summary>The comment currently being inline-renamed; null when not renaming.</summary>
+    public CommentId? RenamingComment { get; set; }
+
     /// <summary>The pending-wire descriptor, set while Mode == PendingWire.</summary>
     public PendingWire? PendingWire { get; set; }
 
@@ -53,6 +59,8 @@ public sealed class InteractionState
         DragThresholdCrossed = false;
         DragOverridePositions.Clear();
         CommentDragContents.Clear();
+        CommentDragOverridePositions.Clear();
+        RenamingComment = null;
         MarqueeGraph = default;
         MarqueeTouchMode = false;
         PendingWire = null;

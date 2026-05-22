@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("NodeEditor.Primitives")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d7ae0fa402ec82a90b04f703bdb968d1656d4c41")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bb83c6cce87c94d87ffe317d64a575ce346f8d63")]
 [assembly: System.Reflection.AssemblyProductAttribute("NodeEditor.Primitives")]
 [assembly: System.Reflection.AssemblyTitleAttribute("NodeEditor.Primitives")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

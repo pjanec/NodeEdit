@@ -52,8 +52,8 @@ public sealed class PickerRegistry : IPickerRegistry
     public void Open(
         string sourceKey,
         Vector2 screenPos,
-        Action<object> onPick,
-        Action? onCancel = null,
+        System.Action<object> onPick,
+        System.Action? onCancel = null,
         IReadOnlyDictionary<string, object?>? context = null)
     {
         if (!_adapters.TryGetValue(sourceKey, out var adapter))
@@ -73,7 +73,7 @@ public sealed class PickerRegistry : IPickerRegistry
     /// Calls <paramref name="onChosen"/> when the user confirms or cancels.
     /// Cancels any previously open picker session.
     /// </summary>
-    public void OpenPicker(PickerRequest request, Action<PickerResult> onChosen)
+    public void OpenPicker(PickerRequest request, System.Action<PickerResult> onChosen)
         => _window.Open(request, onChosen);
 
     /// <summary>

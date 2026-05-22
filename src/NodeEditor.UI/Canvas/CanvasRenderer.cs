@@ -1,6 +1,7 @@
 using System.Numerics;
 using ImGuiNET;
 using NodeEditor.Core.Interfaces;
+using NodeEditor.UI.Find;
 using NodeEditor.UI.Util;
 using NodeEditor.Core.Spatial;
 using NodeEditor.Core.View;
@@ -13,7 +14,7 @@ namespace NodeEditor.UI.Canvas;
 /// layout build → hit-test → input handling → draw phases (grid, comments-back,
 /// wires, nodes, comments-front, pending wire, marquee).
 ///
-/// Usage: create once and call <see cref="Render"/> every ImGui frame while the
+/// Usage: create once and call <c>Render</c> every ImGui frame while the
 /// canvas child window context is active.
 /// </summary>
 public sealed class CanvasRenderer
@@ -35,6 +36,21 @@ public sealed class CanvasRenderer
     /// <param name="view">The graph view to render.</param>
     public void Render(GraphView view)
     {
+        Render(view, findBar: null);
+    }
+
+    /// <summary>
+    /// Render one frame of the node-editor canvas, optionally drawing a find overlay.
+    /// The find bar (if visible) is drawn as a slim band above the canvas, and matching
+    /// nodes receive highlight outlines while non-matching nodes are dimmed.
+    /// </summary>
+    /// <param name="view">The graph view to render.</param>
+    /// <param name="findBar">Optional find bar; overlays are only drawn when <see cref="FindBar.IsVisible"/> is true.</param>
+    public void Render(GraphView view, FindBar? findBar)
+    {
+        // Draw find bar above the canvas
+        findBar?.Draw();
+
         var avail = ImGui.GetContentRegionAvail();
         if (avail.X <= 0 || avail.Y <= 0) return;
 
@@ -47,7 +63,7 @@ public sealed class CanvasRenderer
 
         try
         {
-            RenderInner(view);
+            RenderInner(view, findBar);
         }
         finally
         {
@@ -57,7 +73,7 @@ public sealed class CanvasRenderer
 
     // ── private ───────────────────────────────────────────────────────────────
 
-    private void RenderInner(GraphView view)
+    private void RenderInner(GraphView view, FindBar? findBar = null)
     {
         var origin = ImGui.GetCursorScreenPos();
         var size   = ImGui.GetContentRegionAvail();
@@ -97,11 +113,18 @@ public sealed class CanvasRenderer
         // 8. Comment boxes — foreground layer (header text on top of nodes).
         DrawComments(dl, view, foreground: true);
 
-        // 9. Pending wire being dragged.
+        // 9. Reroute waypoints.
+        ReroutesRenderer.Render(view.Model, view.Selection, view.Viewport, view.TypeSystem);
+
+        // 10. Pending wire being dragged.
         DrawPendingWire(view, dl);
 
-        // 10. Marquee selection rectangle.
+        // 11. Marquee selection rectangle.
         DrawMarquee(view, dl);
+
+        // 12. Find overlay (match highlights + dim pass).
+        if (findBar?.IsVisible == true && findBar.Results.Count > 0)
+            DrawFindOverlay(view, dl, findBar);
     }
 
     // ── Comments ──────────────────────────────────────────────────────────────
@@ -192,5 +215,45 @@ public sealed class CanvasRenderer
         var theme = view.Host.Theme;
         dl.AddRectFilled(min, max, ImGui.GetColorU32(theme.SelectionAccent with { W = 0.1f }));
         dl.AddRect(min, max, ImGui.GetColorU32(theme.SelectionAccent), 0f, ImDrawFlags.None, 1.5f);
+    }
+
+    // ── Find overlay ─────────────────────────────────────────────────────────
+
+    private static void DrawFindOverlay(GraphView view, ImDrawListPtr dl, FindBar findBar)
+    {
+        var matchNodeIds = new HashSet<NodeId>();
+        foreach (var r in findBar.Results)
+            if (r.Node.HasValue) matchNodeIds.Add(r.Node.Value);
+
+        // Dim non-matching nodes
+        foreach (var node in view.Model.Nodes)
+        {
+            if (matchNodeIds.Contains(node.Id)) continue;
+            var pos  = node.Position;
+            var size = node.SizeOverride ?? new Vector2(160, 64);
+            var min  = view.Viewport.GraphToScreen(pos);
+            var max  = view.Viewport.GraphToScreen(pos + size);
+            dl.AddRectFilled(min, max, ImGui.GetColorU32(new Vector4(0, 0, 0, 0.6f)), 4f);
+        }
+
+        // Yellow outline for matching nodes
+        for (int i = 0; i < findBar.Results.Count; i++)
+        {
+            var result = findBar.Results[i];
+            if (!result.Node.HasValue) continue;
+            var node = view.Model.FindNode(result.Node.Value);
+            if (node is null) continue;
+
+            var size  = node.SizeOverride ?? new Vector2(160, 64);
+            var min   = view.Viewport.GraphToScreen(node.Position);
+            var max   = view.Viewport.GraphToScreen(node.Position + size);
+            bool isActive = (i == findBar.ActiveIndex);
+
+            var outlineColor = isActive
+                ? new Vector4(1f, 0.9f, 0.1f, 1f)
+                : new Vector4(1f, 0.85f, 0.0f, 0.7f);
+            float thickness = isActive ? 3.0f : 1.5f;
+            dl.AddRect(min, max, ImGui.GetColorU32(outlineColor), 4f, ImDrawFlags.None, thickness);
+        }
     }
 }

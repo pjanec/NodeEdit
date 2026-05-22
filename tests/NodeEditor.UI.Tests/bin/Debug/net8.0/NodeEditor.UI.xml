@@ -4,6 +4,48 @@
         <name>NodeEditor.UI</name>
     </assembly>
     <members>
+        <member name="T:NodeEditor.UI.Action.BuiltinCommandHandlers">
+            <summary>
+            Registers handlers for all built-in editor commands that the editor itself owns
+            (versus host-owned commands such as Save and Compile).
+            Call once during editor construction after all sub-registrars have run.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Action.BuiltinCommandHandlers.RegisterAll(NodeEditor.Core.Action.EditorCommandsImpl,NodeEditor.Core.View.GraphView,NodeEditor.UI.Find.FindBar)">
+            <summary>
+            Register all built-in commands onto <paramref name="cmds"/>.
+            </summary>
+            <param name="cmds">The commands implementation to register onto.</param>
+            <param name="view">The active graph view (owns undo, selection, model).</param>
+            <param name="findBar">The find bar instance (may be null if find is not used).</param>
+        </member>
+        <member name="T:NodeEditor.UI.Action.CanvasCommands">
+            <summary>
+            Registers canvas-specific commands (Find, navigation) on the given
+            <see cref="T:NodeEditor.Core.Action.EditorCommandsImpl"/>.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Action.CanvasCommands.Register(NodeEditor.Core.Action.EditorCommandsImpl,NodeEditor.Core.View.GraphView,NodeEditor.UI.Find.FindBar)">
+            <summary>Register all canvas commands.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Action.EditCommands">
+            <summary>
+            Registers edit-related commands (Undo, Redo, Delete, SelectAll, etc.)
+            on the given <see cref="T:NodeEditor.Core.Action.EditorCommandsImpl"/>.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Action.EditCommands.Register(NodeEditor.Core.Action.EditorCommandsImpl,NodeEditor.Core.View.GraphView)">
+            <summary>Register all edit commands.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Action.ViewCommands">
+            <summary>
+            Registers view-related commands (ZoomIn, ZoomOut, ZoomReset, FrameAll, FrameSelection)
+            on the given <see cref="T:NodeEditor.Core.Action.EditorCommandsImpl"/>.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Action.ViewCommands.Register(NodeEditor.Core.Action.EditorCommandsImpl,NodeEditor.Core.View.GraphView)">
+            <summary>Register all view commands.</summary>
+        </member>
         <member name="T:NodeEditor.UI.Canvas.CanvasInput">
              <summary>
              Per-frame input handler. Reads from <see cref="T:NodeEditor.Core.Interfaces.IInputSource"/> and ImGui
@@ -51,7 +93,7 @@
              layout build → hit-test → input handling → draw phases (grid, comments-back,
              wires, nodes, comments-front, pending wire, marquee).
             
-             Usage: create once and call <see cref="M:NodeEditor.UI.Canvas.CanvasRenderer.Render(NodeEditor.Core.View.GraphView)"/> every ImGui frame while the
+             Usage: create once and call <c>Render</c> every ImGui frame while the
              canvas child window context is active.
              </summary>
         </member>
@@ -62,6 +104,32 @@
             child window to establish a clip/scroll region.
             </summary>
             <param name="view">The graph view to render.</param>
+        </member>
+        <member name="M:NodeEditor.UI.Canvas.CanvasRenderer.Render(NodeEditor.Core.View.GraphView,NodeEditor.UI.Find.FindBar)">
+            <summary>
+            Render one frame of the node-editor canvas, optionally drawing a find overlay.
+            The find bar (if visible) is drawn as a slim band above the canvas, and matching
+            nodes receive highlight outlines while non-matching nodes are dimmed.
+            </summary>
+            <param name="view">The graph view to render.</param>
+            <param name="findBar">Optional find bar; overlays are only drawn when <see cref="P:NodeEditor.UI.Find.FindBar.IsVisible"/> is true.</param>
+        </member>
+        <member name="T:NodeEditor.UI.Canvas.CommentsRenderer">
+            <summary>
+            Renders comment boxes onto the canvas draw list.
+            Handles background bodies (pre-node pass) and foreground header strips + rename overlay (post-node pass).
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Canvas.CommentsRenderer.RenderBackground(ImGuiNET.ImDrawListPtr,NodeEditor.Core.View.GraphView)">
+            <summary>
+            Draw comment bodies (filled rects) for the back pass (behind nodes).
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Canvas.CommentsRenderer.RenderForeground(ImGuiNET.ImDrawListPtr,NodeEditor.Core.View.GraphView)">
+            <summary>
+            Draw comment headers, outlines, resize handles, and optional inline rename fields.
+            Call after nodes have been rendered (foreground pass).
+            </summary>
         </member>
         <member name="T:NodeEditor.UI.Canvas.GridRenderer">
             <summary>
@@ -103,6 +171,21 @@
         <member name="M:NodeEditor.UI.Canvas.PinRenderer.DrawNodePins(NodeEditor.Core.View.GraphView,ImGuiNET.ImDrawListPtr,NodeEditor.Core.Interfaces.INodeModel,System.Collections.Generic.Dictionary{NodeEditor.Primitives.PinId,System.Numerics.Vector2},System.Collections.Generic.HashSet{NodeEditor.Primitives.PinId})">
             <summary>Draw all visible pin glyphs and labels for a node.</summary>
         </member>
+        <member name="T:NodeEditor.UI.Canvas.ReroutesRenderer">
+            <summary>
+            Renders reroute waypoint circles for all links that have waypoints.
+            Called after wires + nodes so the reroute circles appear on top.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Canvas.ReroutesRenderer.Render(NodeEditor.Core.Interfaces.IGraphModel,NodeEditor.Core.View.SelectionState,NodeEditor.Core.View.ViewportState,NodeEditor.Core.Interfaces.ITypeSystem)">
+            <summary>Draw all reroute waypoints for all links.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Canvas.ReroutesRenderer.HitTest(NodeEditor.Core.Interfaces.IGraphModel,NodeEditor.Core.View.ViewportState,System.Numerics.Vector2,System.Single)">
+            <summary>
+            Hit-test reroutes; returns the first reroute hit within the given screen radius,
+            or <see langword="null"/> if nothing was hit.
+            </summary>
+        </member>
         <member name="T:NodeEditor.UI.Canvas.WireRenderer">
             <summary>
             Draws all wires (links) and reroute waypoints. Execution wires get a
@@ -112,6 +195,212 @@
         </member>
         <member name="M:NodeEditor.UI.Canvas.WireRenderer.DrawAll(NodeEditor.Core.View.GraphView,ImGuiNET.ImDrawListPtr,System.Collections.Generic.Dictionary{NodeEditor.Primitives.PinId,System.Numerics.Vector2})">
             <summary>Draw all links from <see cref="P:NodeEditor.Core.View.GraphView.Model"/>.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Find.FindBar">
+            <summary>
+            The slim find bar inserted above the canvas (Ctrl+F).
+            Owns its own visibility, search text, and active-match index.
+            On query change, asks the <see cref="T:NodeEditor.UI.Find.FindEngine"/> to enumerate
+            matches in the current graph and exposes them as a navigable list.
+            </summary>
+        </member>
+        <member name="P:NodeEditor.UI.Find.FindBar.IsVisible">
+            <summary>Show/hide the bar. Ctrl+F sets true; Esc on empty bar sets false.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Find.FindBar.Scope">
+            <summary>Active scope.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Find.FindBar.CaseSensitive">
+            <summary>Case-sensitive search.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Find.FindBar.RegexMode">
+            <summary>Regex mode.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Find.FindBar.ActiveIndex">
+            <summary>Current match index within <see cref="P:NodeEditor.UI.Find.FindBar.Results"/>.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Find.FindBar.Results">
+            <summary>All matches in the current graph.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Find.FindBar.#ctor(NodeEditor.Core.View.GraphView,NodeEditor.UI.Find.FindEngine)">
+            <summary>Create a find bar bound to the given view and engine.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Find.FindBar.Draw">
+            <summary>
+            Draw the bar inside the current ImGui region (above the canvas).
+            Returns true while the bar is visible.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Find.FindBar.Next">
+            <summary>Advance to the next match (F3).</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Find.FindBar.Previous">
+            <summary>Retreat to the previous match (Shift+F3).</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Find.FindBar.Open">
+            <summary>Open the bar and focus the search field.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Find.FindEngine">
+            <summary>
+            Pure search logic: parses a <see cref="T:NodeEditor.UI.Find.FindQuery"/> and enumerates matching
+            entities within a graph model.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Find.FindEngine.#ctor(NodeEditor.Core.Interfaces.IGraphModel,NodeEditor.Core.Interfaces.IGraphSearchProvider)">
+            <summary>Create a new engine for the specified model and optional extra-text provider.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Find.FindEngine.Search(NodeEditor.UI.Find.FindQuery,NodeEditor.UI.Find.FindScope,NodeEditor.Core.View.GraphView)">
+            <summary>
+            Execute a search and return all matching results in ranked order.
+            </summary>
+            <param name="query">Parsed query from <see cref="T:NodeEditor.UI.Find.FindQueryParser"/>.</param>
+            <param name="scope">Which graphs to search (only <see cref="F:NodeEditor.UI.Find.FindScope.CurrentGraph"/> is handled here).</param>
+            <param name="view">The active graph view (used for state-based prefix filters).</param>
+        </member>
+        <member name="T:NodeEditor.UI.Find.FindQuery">
+            <summary>
+            A parsed find query, broken into optional prefix filters and a free-text term.
+            </summary>
+            <param name="FreeText">The portion of the query after all prefix tokens have been removed.</param>
+            <param name="Prefixes">
+            Extracted prefix filters (e.g. <c>type</c>, <c>kind</c>, <c>category</c>).
+            Keys are lower-case prefix names; values are the text that followed the colon.
+            </param>
+        </member>
+        <member name="M:NodeEditor.UI.Find.FindQuery.#ctor(System.String,System.Collections.Generic.IReadOnlyDictionary{System.String,System.String})">
+            <summary>
+            A parsed find query, broken into optional prefix filters and a free-text term.
+            </summary>
+            <param name="FreeText">The portion of the query after all prefix tokens have been removed.</param>
+            <param name="Prefixes">
+            Extracted prefix filters (e.g. <c>type</c>, <c>kind</c>, <c>category</c>).
+            Keys are lower-case prefix names; values are the text that followed the colon.
+            </param>
+        </member>
+        <member name="P:NodeEditor.UI.Find.FindQuery.FreeText">
+            <summary>The portion of the query after all prefix tokens have been removed.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Find.FindQuery.Prefixes">
+            <summary>
+            Extracted prefix filters (e.g. <c>type</c>, <c>kind</c>, <c>category</c>).
+            Keys are lower-case prefix names; values are the text that followed the colon.
+            </summary>
+        </member>
+        <member name="T:NodeEditor.UI.Find.FindQueryParser">
+            <summary>
+            Parses a raw query string into a <see cref="T:NodeEditor.UI.Find.FindQuery"/>.
+            Supported prefixes: type, kind, category, var, func, error, warning, breakpoint, watched.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Find.FindQueryParser.Parse(System.String)">
+            <summary>Parse a raw query string and return the structured result.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Find.FindResultKind">
+            <summary>The kind of entity that matched a find query.</summary>
+        </member>
+        <member name="F:NodeEditor.UI.Find.FindResultKind.Node">
+            <summary>A node matched.</summary>
+        </member>
+        <member name="F:NodeEditor.UI.Find.FindResultKind.Pin">
+            <summary>A pin label matched.</summary>
+        </member>
+        <member name="F:NodeEditor.UI.Find.FindResultKind.PinDefault">
+            <summary>A pin default value matched.</summary>
+        </member>
+        <member name="F:NodeEditor.UI.Find.FindResultKind.Comment">
+            <summary>A comment box matched.</summary>
+        </member>
+        <member name="F:NodeEditor.UI.Find.FindResultKind.Variable">
+            <summary>A variable reference matched.</summary>
+        </member>
+        <member name="F:NodeEditor.UI.Find.FindResultKind.Function">
+            <summary>A function call site matched.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Find.FindResult">
+            <summary>
+            A single result from a find operation.
+            </summary>
+            <param name="Kind">The kind of entity that matched.</param>
+            <param name="Graph">The graph that contains the match (may be null for current-graph scope).</param>
+            <param name="Node">The node that matched, or the node owning the matched pin/default.</param>
+            <param name="Pin">The pin that matched (null for node/comment matches).</param>
+            <param name="Comment">The comment that matched (null unless Kind == Comment).</param>
+            <param name="DisplayLabel">Human-readable label shown in the results list.</param>
+            <param name="MatchSnippet">Short context snippet around the match.</param>
+            <param name="MatchPositions">Character positions within <see cref="P:NodeEditor.UI.Find.FindResult.DisplayLabel"/> that were matched.</param>
+        </member>
+        <member name="M:NodeEditor.UI.Find.FindResult.#ctor(NodeEditor.UI.Find.FindResultKind,System.Nullable{NodeEditor.Primitives.GraphId},System.Nullable{NodeEditor.Primitives.NodeId},System.Nullable{NodeEditor.Primitives.PinId},System.Nullable{NodeEditor.Primitives.CommentId},System.String,System.String,System.Collections.Generic.IReadOnlyList{System.Int32})">
+            <summary>
+            A single result from a find operation.
+            </summary>
+            <param name="Kind">The kind of entity that matched.</param>
+            <param name="Graph">The graph that contains the match (may be null for current-graph scope).</param>
+            <param name="Node">The node that matched, or the node owning the matched pin/default.</param>
+            <param name="Pin">The pin that matched (null for node/comment matches).</param>
+            <param name="Comment">The comment that matched (null unless Kind == Comment).</param>
+            <param name="DisplayLabel">Human-readable label shown in the results list.</param>
+            <param name="MatchSnippet">Short context snippet around the match.</param>
+            <param name="MatchPositions">Character positions within <see cref="P:NodeEditor.UI.Find.FindResult.DisplayLabel"/> that were matched.</param>
+        </member>
+        <member name="P:NodeEditor.UI.Find.FindResult.Kind">
+            <summary>The kind of entity that matched.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Find.FindResult.Graph">
+            <summary>The graph that contains the match (may be null for current-graph scope).</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Find.FindResult.Node">
+            <summary>The node that matched, or the node owning the matched pin/default.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Find.FindResult.Pin">
+            <summary>The pin that matched (null for node/comment matches).</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Find.FindResult.Comment">
+            <summary>The comment that matched (null unless Kind == Comment).</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Find.FindResult.DisplayLabel">
+            <summary>Human-readable label shown in the results list.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Find.FindResult.MatchSnippet">
+            <summary>Short context snippet around the match.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Find.FindResult.MatchPositions">
+            <summary>Character positions within <see cref="P:NodeEditor.UI.Find.FindResult.DisplayLabel"/> that were matched.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Find.FindResultsPanel">
+            <summary>
+            Side panel showing find results across an asset or project scope.
+            Groups results by graph, with collapsible sections.
+            </summary>
+        </member>
+        <member name="P:NodeEditor.UI.Find.FindResultsPanel.Results">
+            <summary>Current set of results to display.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Find.FindResultsPanel.IsVisible">
+            <summary>Whether the panel is visible.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Find.FindResultsPanel.#ctor(System.Action{NodeEditor.Primitives.GraphId,System.Nullable{NodeEditor.Primitives.NodeId}})">
+            <summary>
+            Create a find-results panel.
+            </summary>
+            <param name="navigateTo">Callback invoked when the user clicks a result to navigate there.</param>
+        </member>
+        <member name="M:NodeEditor.UI.Find.FindResultsPanel.Draw">
+            <summary>Draw the panel contents inside the current ImGui window.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Find.FindScope">
+            <summary>The scope of a find operation.</summary>
+        </member>
+        <member name="F:NodeEditor.UI.Find.FindScope.CurrentGraph">
+            <summary>Search only within the currently visible graph.</summary>
+        </member>
+        <member name="F:NodeEditor.UI.Find.FindScope.Asset">
+            <summary>Search across all graphs in the current asset.</summary>
+        </member>
+        <member name="F:NodeEditor.UI.Find.FindScope.OpenTabs">
+            <summary>Search across all open tabs.</summary>
+        </member>
+        <member name="F:NodeEditor.UI.Find.FindScope.WholeProject">
+            <summary>Search the entire project.</summary>
         </member>
         <member name="T:NodeEditor.UI.MiniEditors.ArrayPinEditor">
             <summary>

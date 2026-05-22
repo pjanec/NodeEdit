@@ -18,7 +18,7 @@ internal static class MyBlueprintContextMenu
     public static void Draw(
         MyBlueprintItem item,
         IEditorCommands commands,
-        Action<string, string> navigateToItem)
+        System.Action<string, string> navigateToItem)
     {
         if (!ImGui.BeginPopupContextItem($"##ctx_{item.ItemId}"))
             return;
@@ -32,7 +32,7 @@ internal static class MyBlueprintContextMenu
     private static void DrawForSectionId(
         MyBlueprintItem item,
         IEditorCommands commands,
-        Action<string, string> navigateToItem)
+        System.Action<string, string> navigateToItem)
     {
         string sectionId = item.SectionId.ToLowerInvariant();
 
@@ -101,7 +101,7 @@ internal static class MyBlueprintContextMenu
     // ── function ─────────────────────────────────────────────────────────────
 
     private static void DrawFunctionMenu(MyBlueprintItem item, IEditorCommands commands,
-                                          Action<string, string> navigateToItem)
+                                          System.Action<string, string> navigateToItem)
     {
         if (ImGui.MenuItem("Go to Function", "\u23ce"))
             navigateToItem(item.SectionId, item.ItemId);
@@ -134,7 +134,7 @@ internal static class MyBlueprintContextMenu
     // ── macro ─────────────────────────────────────────────────────────────────
 
     private static void DrawMacroMenu(MyBlueprintItem item, IEditorCommands commands,
-                                       Action<string, string> navigateToItem)
+                                       System.Action<string, string> navigateToItem)
     {
         if (ImGui.MenuItem("Go to Macro", "\u23ce"))
             navigateToItem(item.SectionId, item.ItemId);
@@ -158,7 +158,7 @@ internal static class MyBlueprintContextMenu
     // ── custom event ──────────────────────────────────────────────────────────
 
     private static void DrawCustomEventMenu(MyBlueprintItem item, IEditorCommands commands,
-                                             Action<string, string> navigateToItem)
+                                             System.Action<string, string> navigateToItem)
     {
         if (ImGui.MenuItem("Go to Event", "\u23ce"))
             navigateToItem(item.SectionId, item.ItemId);
@@ -203,7 +203,7 @@ internal static class MyBlueprintContextMenu
     // ── graph entry ───────────────────────────────────────────────────────────
 
     private static void DrawGraphMenu(MyBlueprintItem item, IEditorCommands commands,
-                                       Action<string, string> navigateToItem)
+                                       System.Action<string, string> navigateToItem)
     {
         if (ImGui.MenuItem("Open Graph", "\u23ce"))
             navigateToItem(item.SectionId, item.ItemId);

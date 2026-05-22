@@ -4,6 +4,68 @@
         <name>NodeEditor.Core</name>
     </assembly>
     <members>
+        <member name="T:NodeEditor.Core.Action.CommandRegistration">
+            <summary>
+            Fluent helper for building and registering <see cref="T:NodeEditor.Core.Action.EditorCommandDescriptor"/> entries
+            on an <see cref="T:NodeEditor.Core.Action.EditorCommandsImpl"/> instance.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.Core.Action.CommandRegistration.#ctor(NodeEditor.Core.Action.EditorCommandsImpl)">
+            <summary>Create a registration helper targeting the given commands implementation.</summary>
+        </member>
+        <member name="M:NodeEditor.Core.Action.CommandRegistration.Add(System.String,System.String,System.String,System.Action{NodeEditor.Core.Action.EditorCommandContext},System.Func{System.Boolean},System.String,System.String,System.Nullable{NodeEditor.Core.Action.KeyBinding},System.Func{System.Boolean})">
+            <summary>
+            Register a command with the given id, display name, category, and action.
+            </summary>
+        </member>
+        <member name="T:NodeEditor.Core.Action.EditorCommandsImpl">
+            <summary>
+            Default implementation of <see cref="T:NodeEditor.Core.Action.IEditorCommands"/>.
+            Holds a registry of <see cref="T:NodeEditor.Core.Action.EditorCommandDescriptor"/> objects and
+            delegates invocations to their registered action.
+            </summary>
+        </member>
+        <member name="P:NodeEditor.Core.Action.EditorCommandsImpl.All">
+            <inheritdoc/>
+        </member>
+        <member name="M:NodeEditor.Core.Action.EditorCommandsImpl.Get(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:NodeEditor.Core.Action.EditorCommandsImpl.Invoke(System.String,System.Nullable{NodeEditor.Core.Action.EditorCommandContext})">
+            <inheritdoc/>
+        </member>
+        <member name="E:NodeEditor.Core.Action.EditorCommandsImpl.AvailabilityChanged">
+            <inheritdoc/>
+        </member>
+        <member name="M:NodeEditor.Core.Action.EditorCommandsImpl.Register(NodeEditor.Core.Action.EditorCommandDescriptor,System.Action{NodeEditor.Core.Action.EditorCommandContext})">
+            <summary>Register a command. Called at editor startup by the host or by the editor itself.</summary>
+        </member>
+        <member name="M:NodeEditor.Core.Action.EditorCommandsImpl.NotifyAvailabilityChanged(System.String)">
+            <summary>Trigger an <see cref="E:NodeEditor.Core.Action.EditorCommandsImpl.AvailabilityChanged"/> event for a command id.</summary>
+        </member>
+        <member name="T:NodeEditor.Core.Action.EditorIndicatorsImpl">
+            <summary>
+            Default implementation of <see cref="T:NodeEditor.Core.Action.IEditorIndicators"/>.
+            Wraps a <see cref="T:NodeEditor.Core.Action.ToastQueue"/> and stores the current <see cref="T:NodeEditor.Core.Action.EditorStatusSnapshot"/>.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.Core.Action.EditorIndicatorsImpl.#ctor(NodeEditor.Core.Action.ToastQueue)">
+            <summary>Create an indicators impl backed by the given toast queue.</summary>
+        </member>
+        <member name="P:NodeEditor.Core.Action.EditorIndicatorsImpl.Snapshot">
+            <inheritdoc/>
+        </member>
+        <member name="E:NodeEditor.Core.Action.EditorIndicatorsImpl.Changed">
+            <inheritdoc/>
+        </member>
+        <member name="M:NodeEditor.Core.Action.EditorIndicatorsImpl.Notify(NodeEditor.Core.Action.EditorNotification)">
+            <inheritdoc/>
+        </member>
+        <member name="M:NodeEditor.Core.Action.EditorIndicatorsImpl.UpdateSnapshot(NodeEditor.Core.Action.EditorStatusSnapshot)">
+            <summary>
+            Replace the current snapshot. Raises <see cref="E:NodeEditor.Core.Action.EditorIndicatorsImpl.Changed"/> only if any field differs.
+            </summary>
+        </member>
         <member name="T:NodeEditor.Core.Action.IEditorCommands">
             <summary>
             Surface exposing the editor's commands to a host shell. The host binds
@@ -75,6 +137,23 @@
         </member>
         <member name="M:NodeEditor.Core.Action.NotificationAction.#ctor(System.String,System.String)">
             <summary>An action shown in a notification (a button that invokes a command).</summary>
+        </member>
+        <member name="T:NodeEditor.Core.Action.ToastQueue">
+            <summary>
+            A queued notification for the host shell to display (toast).
+            </summary>
+        </member>
+        <member name="P:NodeEditor.Core.Action.ToastQueue.Pending">
+            <summary>All pending notifications (not yet dequeued by the host).</summary>
+        </member>
+        <member name="P:NodeEditor.Core.Action.ToastQueue.Count">
+            <summary>Number of pending notifications.</summary>
+        </member>
+        <member name="M:NodeEditor.Core.Action.ToastQueue.Enqueue(NodeEditor.Core.Action.EditorNotification)">
+            <summary>Enqueue a notification for display.</summary>
+        </member>
+        <member name="M:NodeEditor.Core.Action.ToastQueue.TryDequeue(NodeEditor.Core.Action.EditorNotification@)">
+            <summary>Dequeue the next notification, or return false if empty.</summary>
         </member>
         <member name="T:NodeEditor.Core.CommandCatalog">
             <summary>
@@ -1175,6 +1254,12 @@
         </member>
         <member name="P:NodeEditor.Core.View.InteractionState.CommentDragContents">
             <summary>Snapshot of nodes that are dragged together with a comment ("contained" set, captured at drag-start).</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.InteractionState.CommentDragOverridePositions">
+            <summary>Per-comment graph-space position overrides while a comment drag is in progress.</summary>
+        </member>
+        <member name="P:NodeEditor.Core.View.InteractionState.RenamingComment">
+            <summary>The comment currently being inline-renamed; null when not renaming.</summary>
         </member>
         <member name="P:NodeEditor.Core.View.InteractionState.PendingWire">
             <summary>The pending-wire descriptor, set while Mode == PendingWire.</summary>

@@ -18,8 +18,8 @@ public sealed class MyBlueprintPanel
     private readonly IMyBlueprintModel _model;
     private readonly IEditorHostServices _host;
     private readonly IEditorCommands _commands;
-    private readonly Action<GraphId> _navigateToGraph;
-    private readonly Action<string, string> _navigateToItem;
+    private readonly System.Action<GraphId> _navigateToGraph;
+    private readonly System.Action<string, string> _navigateToItem;
 
     // Selection state.
     private MyBlueprintItem? _selectedItem;
@@ -32,7 +32,7 @@ public sealed class MyBlueprintPanel
     private string? _preSearchExpansion;  // marker for "search active"
 
     /// <inheritdoc cref="IMyBlueprintModel.Changed"/>
-    public event Action<MyBlueprintItem?>? SelectionChanged;
+    public event System.Action<MyBlueprintItem?>? SelectionChanged;
 
     /// <summary>The currently selected item.</summary>
     public MyBlueprintItem? SelectedItem => _selectedItem;
@@ -52,8 +52,8 @@ public sealed class MyBlueprintPanel
         IMyBlueprintModel model,
         IEditorHostServices host,
         IEditorCommands commands,
-        Action<GraphId> navigateToGraph,
-        Action<string, string> navigateToItem)
+        System.Action<GraphId> navigateToGraph,
+        System.Action<string, string> navigateToItem)
     {
         _model           = model;
         _host            = host;

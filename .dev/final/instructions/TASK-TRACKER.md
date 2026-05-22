@@ -55,9 +55,9 @@ on the demo app is the visual test harness.
 **Goal:** All side surfaces work: generic picker (reusable across 12+
 contexts), My Blueprint outline, Details inspector, Find bar, comments
 and reroutes.
-- [ ] **TASK-P4-001** Generic Picker Window — [details](./03-06-task-picker.md)
-- [ ] **TASK-P4-002** My Blueprint Panel — [details](./03-07-task-myblueprint-details.md#t-15--ui-my-blueprint-panel)
-- [ ] **TASK-P4-003** Details Panel — [details](./03-07-task-myblueprint-details.md#t-16--ui-details-panel)
+- [x] **TASK-P4-001** Generic Picker Window — [details](./03-06-task-picker.md)
+- [x] **TASK-P4-002** My Blueprint Panel — [details](./03-07-task-myblueprint-details.md#t-15--ui-my-blueprint-panel)
+- [x] **TASK-P4-003** Details Panel — [details](./03-07-task-myblueprint-details.md#t-16--ui-details-panel)
 - [ ] **TASK-P4-004** Find Bar / Find-in-Asset Panel — [details](./03-08-task-find-comments.md#t-17--ui-find-bar-and-find-in-asset-panel)
 - [ ] **TASK-P4-005** Comments and Reroutes — [details](./03-08-task-find-comments.md#t-18--ui-comments-and-reroutes)
 
