@@ -163,6 +163,20 @@ public sealed class CanvasRenderer
         // 13. Find overlay (match highlights + dim pass).
         if (findBar?.IsVisible == true && findBar.Results.Count > 0)
             DrawFindOverlay(view, dl, findBar);
+
+        // 14. Context menu popup request/dispatch.
+        if (view.Interaction.ContextMenuScreen.HasValue)
+        {
+            ImGui.SetNextWindowPos(view.Interaction.ContextMenuScreen.Value);
+            ImGui.OpenPopup("##canvas_ctx");
+            view.Interaction.ContextMenuScreen = null;
+        }
+
+        if (ImGui.BeginPopup("##canvas_ctx"))
+        {
+            DrawContextMenu(view);
+            ImGui.EndPopup();
+        }
     }
 
     // ── Comments ──────────────────────────────────────────────────────────────
@@ -257,6 +271,87 @@ public sealed class CanvasRenderer
         var theme = view.Host.Theme;
         dl.AddRectFilled(min, max, ImGui.GetColorU32(theme.SelectionAccent with { W = 0.1f }));
         dl.AddRect(min, max, ImGui.GetColorU32(theme.SelectionAccent), 0f, ImDrawFlags.None, 1.5f);
+    }
+
+    private static void DrawContextMenu(GraphView view)
+    {
+        var target = view.Interaction.ContextMenuTarget;
+        switch (target.Kind)
+        {
+            case HoverKind.Pin:
+            {
+                var pinId = target.Pin;
+                if (ImGui.MenuItem("Break Link(s)"))
+                {
+                    var linksToRemove = view.Model.Links
+                        .Where(l => l.FromPin == pinId || l.ToPin == pinId)
+                        .Select(l => l.Id)
+                        .ToList();
+                    if (linksToRemove.Count > 0)
+                        view.Commands.Apply(new Core.Commands.GraphCommand.RemoveLinks(linksToRemove));
+                }
+
+                ImGui.Separator();
+                if (ImGui.MenuItem("Promote to Variable..."))
+                    view.Commands.Apply(new Core.Commands.GraphCommand.PromoteToVariable(pinId, "NewVariable", false, null));
+                if (ImGui.MenuItem("Promote to Local Variable..."))
+                    view.Commands.Apply(new Core.Commands.GraphCommand.PromoteToVariable(pinId, "NewLocalVariable", true, null));
+
+                ImGui.BeginDisabled();
+                ImGui.MenuItem("Split Struct Pin");
+                ImGui.MenuItem("Recombine Struct Pin");
+                ImGui.MenuItem("Watch this Value");
+                ImGui.EndDisabled();
+
+                if (ImGui.MenuItem("Reset to Default"))
+                    view.Commands.Apply(new Core.Commands.GraphCommand.SetPinDefault(pinId, null));
+
+                ImGui.BeginDisabled();
+                ImGui.MenuItem("Convert to Reroute Node");
+                ImGui.EndDisabled();
+                break;
+            }
+
+            case HoverKind.Link:
+            {
+                var linkId = target.Link;
+                if (ImGui.MenuItem("Break Link"))
+                    view.Commands.Apply(new Core.Commands.GraphCommand.RemoveLinks(new[] { linkId }));
+
+                if (ImGui.MenuItem("Select Connected Nodes"))
+                {
+                    var link = view.Model.FindLink(linkId);
+                    if (link != null)
+                    {
+                        var fromNode = view.Model.FindPin(link.FromPin)?.OwnerNodeId;
+                        var toNode = view.Model.FindPin(link.ToPin)?.OwnerNodeId;
+                        var entries = new List<SelectionEntry>();
+                        if (fromNode.HasValue) entries.Add(SelectionEntry.OfNode(fromNode.Value));
+                        if (toNode.HasValue) entries.Add(SelectionEntry.OfNode(toNode.Value));
+                        view.Selection.ReplaceWith(entries);
+                    }
+                }
+
+                if (ImGui.MenuItem("Insert Reroute Node Here"))
+                {
+                    var graphPos = view.Viewport.ScreenToGraph(ImGui.GetMousePos());
+                    view.Commands.Apply(new Core.Commands.GraphCommand.InsertReroute(linkId, graphPos));
+                }
+
+                ImGui.BeginDisabled();
+                ImGui.MenuItem("Hide Wire");
+                ImGui.EndDisabled();
+                break;
+            }
+
+            case HoverKind.Node:
+                if (ImGui.MenuItem("Delete Node"))
+                {
+                    var nodeId = target.Node;
+                    view.Commands.Apply(new Core.Commands.GraphCommand.RemoveNodes(new[] { nodeId }));
+                }
+                break;
+        }
     }
 
     // ── Find overlay ─────────────────────────────────────────────────────────

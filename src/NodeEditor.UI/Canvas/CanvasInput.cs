@@ -119,6 +119,7 @@ internal sealed class CanvasInput
         {
             view.Interaction.Mode = InteractionMode.Panning;
             view.Interaction.DragStartScreen = input.MousePosition;
+            view.Interaction.DragThresholdCrossed = false;
             return;
         }
 
@@ -250,11 +251,27 @@ internal sealed class CanvasInput
 
     private static void HandlePanning(GraphView view, IInputSource input)
     {
+        var delta = input.MousePosition - view.Interaction.DragStartScreen;
+        if (!view.Interaction.DragThresholdCrossed
+            && delta.Length() > TimingConstants.DragThresholdPixels)
+        {
+            view.Interaction.DragThresholdCrossed = true;
+        }
+
         if (input.MouseDelta != Vector2.Zero)
             view.Viewport.PanScreen(-input.MouseDelta);
 
         if (input.IsMouseReleased(MouseButton.Right))
+        {
+            bool wasDrag = view.Interaction.DragThresholdCrossed;
+            var menuTarget = view.Interaction.Hover;
             view.Interaction.ResetToIdle();
+            if (!wasDrag)
+            {
+                view.Interaction.ContextMenuScreen = input.MousePosition;
+                view.Interaction.ContextMenuTarget = menuTarget;
+            }
+        }
     }
 
     // ── Dragging nodes ────────────────────────────────────────────────────────
