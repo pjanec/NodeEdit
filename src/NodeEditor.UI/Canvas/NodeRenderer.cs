@@ -34,47 +34,73 @@ internal sealed class NodeRenderer
         float corner = theme.NodeCornerRadius * zoom;
         float border = theme.NodeBorderThickness * zoom;
 
+        // Pass 1: draw resting nodes (includes marquee-selected nodes).
         foreach (var nodeId in visibleNodes)
         {
-            var node = view.Model.FindNode(nodeId);
-            if (node == null) continue;
-            if (!nodeScreenRects.TryGetValue(nodeId, out var rect)) continue;
+            if (view.Interaction.DragOverridePositions.ContainsKey(nodeId)) continue;
+            RenderSingleNode(view, dl, nodeId, nodeScreenRects, pinPositions, connectedInputPins,
+                theme, zoom, corner, border);
+        }
 
-            var pMin = rect.Min;
-            var pMax = rect.Min + rect.Size;
-
-            // Body background
-            dl.AddRectFilled(pMin, pMax, ImGui.GetColorU32(new Vector4(0.18f, 0.18f, 0.18f, 0.95f)), corner);
-
-            // Header strip
-            float headerH = theme.NodeHeaderHeight * zoom;
-            var headerColor = theme.GetCategoryHeaderColor(node.Category);
-            dl.AddRectFilled(pMin, new Vector2(pMax.X, pMin.Y + headerH), ImGui.GetColorU32(headerColor),
-                corner, ImDrawFlags.RoundCornersTop);
-
-            // Node state overlay (executing, disabled, error, warning)
-            DrawStateOverlay(dl, view, node, pMin, pMax, corner, border, theme);
-
-            // Selection / hover outline
-            DrawOutlines(dl, view, node, pMin, pMax, corner, border, theme);
-
-            // Title text
-            if (!view.Viewport.IsLowZoom)
-            {
-                DrawTitle(dl, node, pMin, pMax, headerH, theme, zoom);
-            }
-
-            // Pins — skip entirely in low-zoom mode (no sub-pixel glyphs submitted to ImGui).
-            if (!view.Viewport.IsLowZoom)
-                _pins.DrawNodePins(view, dl, node, pinPositions, connectedInputPins);
-
-            // Inline default-value editors
-            if (!view.Viewport.IsLowZoom)
-                DrawInlineEditors(view, node, nodeScreenRects, pinPositions, connectedInputPins, zoom);
+        // Pass 2: draw clicked/dragged nodes on top.
+        foreach (var nodeId in visibleNodes)
+        {
+            if (!view.Interaction.DragOverridePositions.ContainsKey(nodeId)) continue;
+            RenderSingleNode(view, dl, nodeId, nodeScreenRects, pinPositions, connectedInputPins,
+                theme, zoom, corner, border);
         }
     }
 
-    // ── private ───────────────────────────────────────────────────────────────
+    // -- private ----------------------------------------------------------------
+
+    private void RenderSingleNode(
+        GraphView view,
+        ImDrawListPtr dl,
+        NodeId nodeId,
+        Dictionary<NodeId, RectF> nodeScreenRects,
+        Dictionary<PinId, Vector2> pinPositions,
+        HashSet<PinId> connectedInputPins,
+        IEditorTheme theme,
+        float zoom,
+        float corner,
+        float border)
+    {
+        var node = view.Model.FindNode(nodeId);
+        if (node == null) return;
+        if (!nodeScreenRects.TryGetValue(nodeId, out var rect)) return;
+
+        var pMin = rect.Min;
+        var pMax = rect.Min + rect.Size;
+
+        // Body background
+        dl.AddRectFilled(pMin, pMax, ImGui.GetColorU32(new Vector4(0.18f, 0.18f, 0.18f, 0.95f)), corner);
+
+        // Header strip
+        float headerH = theme.NodeHeaderHeight * zoom;
+        var headerColor = theme.GetCategoryHeaderColor(node.Category);
+        dl.AddRectFilled(pMin, new Vector2(pMax.X, pMin.Y + headerH), ImGui.GetColorU32(headerColor),
+            corner, ImDrawFlags.RoundCornersTop);
+
+        // Node state overlay (executing, disabled, error, warning)
+        DrawStateOverlay(dl, view, node, pMin, pMax, corner, border, theme);
+
+        // Selection / hover outline
+        DrawOutlines(dl, view, node, pMin, pMax, corner, border, theme);
+
+        // Title text
+        if (!view.Viewport.IsLowZoom)
+        {
+            DrawTitle(dl, node, pMin, pMax, headerH, theme, zoom);
+        }
+
+        // Pins - skip entirely in low-zoom mode (no sub-pixel glyphs submitted to ImGui).
+        if (!view.Viewport.IsLowZoom)
+            _pins.DrawNodePins(view, dl, node, pinPositions, connectedInputPins);
+
+        // Inline default-value editors
+        if (!view.Viewport.IsLowZoom)
+            DrawInlineEditors(view, node, nodeScreenRects, pinPositions, connectedInputPins, zoom);
+    }
 
     private static void DrawTitle(
         ImDrawListPtr dl,
@@ -170,7 +196,7 @@ internal sealed class NodeRenderer
             .ToList();
 
         float editorWidthPx = EditorWidthGu * zoom;
-        float padPx = EditorHorizPadGu * zoom;
+        float _ = EditorHorizPadGu * zoom;
 
         // Editor appears to the right of the pin label, left-aligned inside the node body.
         // Position: node right side minus editor width minus horizontal padding.
@@ -184,7 +210,6 @@ internal sealed class NodeRenderer
             if (editor == null) continue;
 
             var editorPos = new Vector2(editorX, pinScreenPos.Y - ImGui.GetFontSize() * 0.5f);
-            float editorHeight = ImGui.GetFontSize() + 2f;
 
             using var scope = new ImGuiPushIdScope(pin.Id.GetHashCode());
             ImGui.SetCursorScreenPos(editorPos);
@@ -198,7 +223,7 @@ internal sealed class NodeRenderer
                 IsReadOnly: false,
                 Metadata: pin.Default.Metadata);
 
-            bool changed = editor.Draw(ref currentValue, ctx, out bool committed);
+            editor.Draw(ref currentValue, ctx, out bool committed);
 
             ImGui.PopItemWidth();
 
