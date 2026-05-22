@@ -94,6 +94,9 @@ public sealed class CanvasRenderer
         ImGui.SetNextItemAllowOverlap();
         ImGui.InvisibleButton("##canvas_bg", size);
         bool isCanvasBgActive = ImGui.IsItemActive();
+        bool isCanvasHovered = ImGui.IsWindowHovered(
+            ImGuiHoveredFlags.AllowWhenBlockedByActiveItem
+            | ImGuiHoveredFlags.AllowWhenBlockedByPopup);
 
         // Subscribe to model changes so we know when to rebuild the spatial index.
         // Unsubscribe from the previous model if the view was switched.
@@ -141,6 +144,14 @@ public sealed class CanvasRenderer
 
         // 8. Nodes + inline editors — only the culled visible subset.
         _nodes.DrawAll(view, dl, _layout.NodeScreenRects, _layout.PinScreenPositions, _layout.ConnectedInputPins, visibleNodeIds);
+
+        // 4. Process input after widgets are submitted, using snapshotted hover.
+        _input.Handle(view, isCanvasHovered, isCanvasBgActive);
+        if ((view.Host.Input.Modifiers & KeyModifiers.Alt) != 0
+            && view.Interaction.Hover.Kind == HoverKind.Link)
+        {
+            ImGui.SetMouseCursor(ImGuiMouseCursor.NotAllowed);
+        }
 
         // 9. Comment boxes — foreground layer (header text on top of nodes).
         DrawComments(dl, view, foreground: true, visibleGraphRect);
@@ -395,4 +406,5 @@ public sealed class CanvasRenderer
 
     private void OnModelChanged(GraphChangeNotification _) => _spatialDirty = true;
 }
+
 

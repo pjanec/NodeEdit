@@ -25,20 +25,15 @@ internal sealed class CanvasInput
     /// Process one frame of input for the given view.
     /// Must be called after the canvas child window is active.
     /// </summary>
-    public void Handle(GraphView view, bool isCanvasBgActive)
+    public void Handle(GraphView view, bool isCanvasHovered, bool isCanvasBgActive)
     {
-        // Don't process canvas input when an ImGui widget has keyboard/mouse focus,
-        // except when the active widget is the canvas background itself.
-        bool canvasHovered = ImGui.IsWindowHovered(
-                                 ImGuiHoveredFlags.AllowWhenBlockedByActiveItem
-                               | ImGuiHoveredFlags.AllowWhenBlockedByPopup)
-                          && (!ImGui.IsAnyItemActive() || isCanvasBgActive);
+        bool canProcess = isCanvasHovered && (!ImGui.IsAnyItemActive() || isCanvasBgActive);
 
         var input = view.Host.Input;
         var mode  = view.Interaction.Mode;
 
         // ── Zoom ────────────────────────────────────────────────────────────
-        if (canvasHovered && input.WheelDelta != 0f)
+        if (canProcess && input.WheelDelta != 0f)
         {
             float factor = 1f + input.WheelDelta * 0.1f;
             view.Viewport.ZoomAt(input.MousePosition, factor);
@@ -48,7 +43,7 @@ internal sealed class CanvasInput
         switch (mode)
         {
             case InteractionMode.Idle:
-                HandleIdle(view, canvasHovered, input);
+                HandleIdle(view, canProcess, input);
                 break;
 
             case InteractionMode.Panning:
@@ -81,7 +76,7 @@ internal sealed class CanvasInput
         }
 
         // ── Delete / Backspace ───────────────────────────────────────────────
-        if (mode == InteractionMode.Idle && canvasHovered
+        if (mode == InteractionMode.Idle && canProcess
             && (input.IsKeyPressed(EditorKey.Delete) || input.IsKeyPressed(EditorKey.Backspace)))
         {
             DeleteSelected(view);
