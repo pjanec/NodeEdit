@@ -20,22 +20,25 @@ internal sealed class NodeRenderer
 
     private readonly PinRenderer _pins = new();
 
-    /// <summary>Draw all nodes and their inline editors.</summary>
+    /// <summary>Draw the culled visible nodes and their inline editors.</summary>
     public void DrawAll(
         GraphView view,
         ImDrawListPtr dl,
         Dictionary<NodeId, RectF> nodeScreenRects,
         Dictionary<PinId, Vector2> pinPositions,
-        HashSet<PinId> connectedInputPins)
+        HashSet<PinId> connectedInputPins,
+        HashSet<NodeId> visibleNodes)
     {
         var theme = view.Host.Theme;
         float zoom  = view.Viewport.Zoom;
         float corner = theme.NodeCornerRadius * zoom;
         float border = theme.NodeBorderThickness * zoom;
 
-        foreach (var node in view.Model.Nodes)
+        foreach (var nodeId in visibleNodes)
         {
-            if (!nodeScreenRects.TryGetValue(node.Id, out var rect)) continue;
+            var node = view.Model.FindNode(nodeId);
+            if (node == null) continue;
+            if (!nodeScreenRects.TryGetValue(nodeId, out var rect)) continue;
 
             var pMin = rect.Min;
             var pMax = rect.Min + rect.Size;
@@ -61,8 +64,9 @@ internal sealed class NodeRenderer
                 DrawTitle(dl, node, pMin, pMax, headerH, theme, zoom);
             }
 
-            // Pins
-            _pins.DrawNodePins(view, dl, node, pinPositions, connectedInputPins);
+            // Pins — skip entirely in low-zoom mode (no sub-pixel glyphs submitted to ImGui).
+            if (!view.Viewport.IsLowZoom)
+                _pins.DrawNodePins(view, dl, node, pinPositions, connectedInputPins);
 
             // Inline default-value editors
             if (!view.Viewport.IsLowZoom)

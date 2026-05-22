@@ -44,7 +44,7 @@ internal sealed class CanvasLayoutBuilder
     public const float PinTopPadGu      = 6f;
     public const float PinBottomPadGu   = 8f;
 
-    public void Build(GraphView view, CanvasLayout layout, SpatialIndex spatialIndex)
+    public void Build(GraphView view, CanvasLayout layout, SpatialIndex spatialIndex, bool rebuildSpatial)
     {
         layout.Clear();
 
@@ -55,7 +55,10 @@ internal sealed class CanvasLayoutBuilder
         float headerHt = view.Host.Theme.NodeHeaderHeight;
         float zoom = view.Viewport.Zoom;
 
-        var entries = new List<(NodeId, RectF)>(view.Model.Nodes.Count);
+        // Only allocate the entries list when we actually need to rebuild the spatial index.
+        List<(NodeId, RectF)>? entries = rebuildSpatial
+            ? new List<(NodeId, RectF)>(view.Model.Nodes.Count)
+            : null;
 
         foreach (var node in view.Model.Nodes)
         {
@@ -82,8 +85,7 @@ internal sealed class CanvasLayoutBuilder
             float sh = nodeHGu * zoom;
             var rect = new RectF(screenPos, new Vector2(sw, sh));
             layout.NodeScreenRects[node.Id] = rect;
-            entries.Add((node.Id, new RectF(graphPos, new Vector2(nodeWGu, nodeHGu))));
-
+        entries?.Add((node.Id, new RectF(graphPos, new Vector2(nodeWGu, nodeHGu))));
             // Input pin screen positions (left edge).
             for (int i = 0; i < inputPins.Count; i++)
             {
@@ -101,6 +103,7 @@ internal sealed class CanvasLayoutBuilder
             }
         }
 
-        spatialIndex.Rebuild(entries);
+        if (rebuildSpatial)
+            spatialIndex.Rebuild(entries!);
     }
 }

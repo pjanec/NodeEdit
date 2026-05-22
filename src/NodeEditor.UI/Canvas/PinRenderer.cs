@@ -25,6 +25,10 @@ internal sealed class PinRenderer
         Dictionary<PinId, Vector2> pinPositions,
         HashSet<PinId> connectedInputPins)
     {
+        // In low-zoom mode the node renders as a simplified solid block; skip all
+        // pin glyph and label submissions to avoid exhausting the ImGui vertex budget.
+        if (view.Viewport.IsLowZoom) return;
+
         var theme   = view.Host.Theme;
         var zoom    = view.Viewport.Zoom;
         float radius = PinRadiusPx * MathF.Sqrt(zoom); // scale with zoom

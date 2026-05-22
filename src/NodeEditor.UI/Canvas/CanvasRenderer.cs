@@ -28,6 +28,12 @@ public sealed class CanvasRenderer
     private readonly WireRenderer        _wires         = new();
     private readonly NodeRenderer        _nodes         = new();
 
+    // Dirty tracking: rebuild the spatial index only when the graph model changes
+    // or drag-override positions change, not unconditionally every frame.
+    private IGraphModel? _subscribedModel;
+    private bool         _spatialDirty          = true;
+    private int          _lastDragOverrideCount = -1;
+
     /// <summary>
     /// Render one frame of the node-editor canvas. Call this inside an ImGui window
     /// (not inside an existing child window). The method opens and closes its own
@@ -87,42 +93,68 @@ public sealed class CanvasRenderer
         ImGui.SetCursorScreenPos(origin);
         ImGui.Dummy(size);
 
-        // 1. Build layout (screen rects, pin positions, spatial index).
-        _layoutBuilder.Build(view, _layout, _spatialIndex);
+        // Subscribe to model changes so we know when to rebuild the spatial index.
+        // Unsubscribe from the previous model if the view was switched.
+        if (_subscribedModel != view.Model)
+        {
+            if (_subscribedModel != null) _subscribedModel.Changed -= OnModelChanged;
+            _subscribedModel = view.Model;
+            _subscribedModel.Changed += OnModelChanged;
+            _spatialDirty = true;
+        }
 
-        // 2. Hit-test to update hover info.
+        // Drag-override position count changes also require a spatial index rebuild
+        // (nodes move in graph-space while dragging, before the command is committed).
+        int dragCount = view.Interaction.DragOverridePositions.Count;
+        if (dragCount != _lastDragOverrideCount)
+        {
+            _lastDragOverrideCount = dragCount;
+            _spatialDirty = true;
+        }
+
+        // 1. Build layout (screen rects, pin positions; spatial index only when dirty).
+        _layoutBuilder.Build(view, _layout, _spatialIndex, _spatialDirty);
+        _spatialDirty = false;
+
+        // 2. Compute the visible rectangle in graph-space and cull to visible nodes.
+        var graphTopLeft     = view.Viewport.ScreenToGraph(origin);
+        var graphBottomRight = view.Viewport.ScreenToGraph(origin + size);
+        var visibleGraphRect = RectF.FromMinMax(graphTopLeft, graphBottomRight);
+        var visibleNodeIds   = _spatialIndex.Query(visibleGraphRect).ToHashSet();
+
+        // 3. Hit-test to update hover info.
         _hitTester.UpdateHover(view, _spatialIndex, _layout.PinScreenPositions);
 
-        // 3. Process input.
+        // 4. Process input.
         _input.Handle(view);
 
         // ── Draw phases ───────────────────────────────────────────────────
 
-        // 4. Grid + background (also fills the solid background color).
+        // 5. Grid + background (also fills the solid background color).
         _grid.Draw(view, dl, origin, size);
 
-        // 5. Comment boxes — background layer (below nodes).
+        // 6. Comment boxes — background layer (below nodes).
         DrawComments(dl, view, foreground: false);
 
-        // 6. Wires.
-        _wires.DrawAll(view, dl, _layout.PinScreenPositions);
+        // 7. Wires — only those whose endpoints or waypoints are in the visible rect.
+        _wires.DrawAll(view, dl, _layout.PinScreenPositions, visibleNodeIds, visibleGraphRect);
 
-        // 7. Nodes + inline editors.
-        _nodes.DrawAll(view, dl, _layout.NodeScreenRects, _layout.PinScreenPositions, _layout.ConnectedInputPins);
+        // 8. Nodes + inline editors — only the culled visible subset.
+        _nodes.DrawAll(view, dl, _layout.NodeScreenRects, _layout.PinScreenPositions, _layout.ConnectedInputPins, visibleNodeIds);
 
-        // 8. Comment boxes — foreground layer (header text on top of nodes).
+        // 9. Comment boxes — foreground layer (header text on top of nodes).
         DrawComments(dl, view, foreground: true);
 
-        // 9. Reroute waypoints.
+        // 10. Reroute waypoints.
         ReroutesRenderer.Render(view.Model, view.Selection, view.Viewport, view.TypeSystem);
 
-        // 10. Pending wire being dragged.
+        // 11. Pending wire being dragged.
         DrawPendingWire(view, dl);
 
-        // 11. Marquee selection rectangle.
+        // 12. Marquee selection rectangle.
         DrawMarquee(view, dl);
 
-        // 12. Find overlay (match highlights + dim pass).
+        // 13. Find overlay (match highlights + dim pass).
         if (findBar?.IsVisible == true && findBar.Results.Count > 0)
             DrawFindOverlay(view, dl, findBar);
     }
@@ -256,4 +288,8 @@ public sealed class CanvasRenderer
             dl.AddRect(min, max, ImGui.GetColorU32(outlineColor), 4f, ImDrawFlags.None, thickness);
         }
     }
+
+    // ── Model change tracking ─────────────────────────────────────────────────
+
+    private void OnModelChanged(GraphChangeNotification _) => _spatialDirty = true;
 }
