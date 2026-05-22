@@ -14,8 +14,7 @@ namespace NodeEditor.UI.Canvas;
 /// </summary>
 internal sealed class HitTester
 {
-    // How close (screen px) the cursor has to be to a reroute dot or pin to "hit" it.
-    private const float PinHitRadiusPx    = 8f;
+    // How close (screen px) the cursor has to be to a reroute dot to "hit" it.
     private const float RerouteHitRadiusPx = 8f;
     // Wire hit: samples along bezier curve.
     private const float WireHitDistancePx = 6f;
@@ -47,10 +46,13 @@ internal sealed class HitTester
             }
         }
 
-        // 2. Pins
+        // 2. Pins — Spec §8: hit area = 1.5× visible glyph size, zoom-aware.
+        // Base glyph radius is 5px; 1.5× forgiving factor gives 7.5px × zoom.
+        // Clamped to 10px minimum so the target stays usable when zoomed out.
+        float pinHitRadius = MathF.Max(10f, 7.5f * view.Viewport.Zoom);
         foreach (var (pinId, screenPos) in pinPositions)
         {
-            if (Vector2.Distance(mouse, screenPos) <= PinHitRadiusPx)
+            if (Vector2.Distance(mouse, screenPos) <= pinHitRadius)
             {
                 view.Interaction.Hover = new HoverInfo { Kind = HoverKind.Pin, Pin = pinId };
                 return;

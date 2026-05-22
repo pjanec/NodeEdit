@@ -136,7 +136,16 @@ internal sealed class NodeRenderer
         IEditorTheme theme)
     {
         bool selected = view.Selection.Contains(SelectionEntry.OfNode(node.Id));
-        bool hovered  = view.Interaction.Hover is { Kind: HoverKind.Node } h && h.Node == node.Id;
+
+        // A node is considered hovered when the cursor is over its body OR over
+        // any of its own pins (pins have higher hit priority, but the node border
+        // must remain highlighted throughout the entire node area).
+        bool hovered = view.Interaction.Hover.Kind switch
+        {
+            HoverKind.Node => view.Interaction.Hover.Node == node.Id,
+            HoverKind.Pin  => view.Model.FindPin(view.Interaction.Hover.Pin)?.OwnerNodeId == node.Id,
+            _              => false,
+        };
 
         if (selected)
         {
