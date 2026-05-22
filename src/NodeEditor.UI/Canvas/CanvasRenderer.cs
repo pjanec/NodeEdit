@@ -89,9 +89,10 @@ public sealed class CanvasRenderer
         view.Viewport.CanvasScreenOrigin = origin;
         view.Viewport.CanvasScreenSize   = size;
 
-        // Claim the full canvas area as a dummy item (no interaction, just layout).
+        // Claim the full canvas area as a hit target to consume clicks and prevent window dragging.
         ImGui.SetCursorScreenPos(origin);
-        ImGui.Dummy(size);
+        ImGui.InvisibleButton("##canvas_bg", size);
+        bool isCanvasBgActive = ImGui.IsItemActive();
 
         // Subscribe to model changes so we know when to rebuild the spatial index.
         // Unsubscribe from the previous model if the view was switched.
@@ -126,7 +127,7 @@ public sealed class CanvasRenderer
         _hitTester.UpdateHover(view, _spatialIndex, _layout.PinScreenPositions);
 
         // 4. Process input.
-        _input.Handle(view);
+        _input.Handle(view, isCanvasBgActive);
 
         // ── Draw phases ───────────────────────────────────────────────────
 

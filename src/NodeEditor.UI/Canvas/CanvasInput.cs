@@ -25,11 +25,12 @@ internal sealed class CanvasInput
     /// Process one frame of input for the given view.
     /// Must be called after the canvas child window is active.
     /// </summary>
-    public void Handle(GraphView view)
+    public void Handle(GraphView view, bool isCanvasBgActive)
     {
-        // Don't process canvas input when an ImGui widget has keyboard/mouse focus.
-        bool canvasHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.None)
-                          && !ImGui.IsAnyItemActive();
+        // Don't process canvas input when an ImGui widget has keyboard/mouse focus,
+        // except when the active widget is the canvas background itself.
+        bool canvasHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.AllowWhenBlockedByActiveItem)
+                          && (!ImGui.IsAnyItemActive() || isCanvasBgActive);
 
         var input = view.Host.Input;
         var mode  = view.Interaction.Mode;
