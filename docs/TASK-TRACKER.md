@@ -14,7 +14,7 @@ Tracks implementation progress across the 25 tasks in this package.
 ## Phase 0 — Infrastructure
 **Goal:** Solution compiles, all six projects exist with correct
 dependencies, nothing is implemented yet but `dotnet build` succeeds.
-- [ ] **TASK-P0-001** Solution Scaffolding — [details](./03-01-task-scaffolding.md)
+- [x] **TASK-P0-001** Solution Scaffolding — [details](./03-01-task-scaffolding.md)
 
 ---
 
@@ -22,13 +22,13 @@ dependencies, nothing is implemented yet but `dotnet build` succeeds.
 **Goal:** All pure-logic, zero-ImGui code lands. IDs, host interfaces,
 command records, algorithms (fuzzy matcher, expression evaluator, spatial
 index), theme/timing constants. Fully unit-testable.
-- [ ] **TASK-P1-001** Primitives (IDs, enums, IdGenerator, RectF) — [details](./03-02-tasks-kernel-layer.md#t-02--primitives)
-- [ ] **TASK-P1-002** Host Contract Interfaces — [details](./03-02-tasks-kernel-layer.md#t-03--host-contract-interfaces)
-- [ ] **TASK-P1-003** Commands and Undo Stack — [details](./03-02-tasks-kernel-layer.md#t-04--commands-and-undo)
-- [ ] **TASK-P1-004** Fuzzy Matcher + Tests — [details](./03-02-tasks-kernel-layer.md#t-05--fuzzy-matcher)
-- [ ] **TASK-P1-005** Expression Evaluator + Tests — [details](./03-02-tasks-kernel-layer.md#t-06--expression-evaluator)
-- [ ] **TASK-P1-006** Spatial Index + Tests — [details](./03-02-tasks-kernel-layer.md#t-07--spatial-index)
-- [ ] **TASK-P1-007** Timing / Theme / Catalog Constants — [details](./03-02-tasks-kernel-layer.md#t-08--timing--theme--catalog-constants)
+- [x] **TASK-P1-001** Primitives (IDs, enums, IdGenerator, RectF) — [details](./03-02-tasks-kernel-layer.md#t-02--primitives)
+- [x] **TASK-P1-002** Host Contract Interfaces — [details](./03-02-tasks-kernel-layer.md#t-03--host-contract-interfaces)
+- [x] **TASK-P1-003** Commands and Undo Stack — [details](./03-02-tasks-kernel-layer.md#t-04--commands-and-undo)
+- [x] **TASK-P1-004** Fuzzy Matcher + Tests — [details](./03-02-tasks-kernel-layer.md#t-05--fuzzy-matcher)
+- [x] **TASK-P1-005** Expression Evaluator + Tests — [details](./03-02-tasks-kernel-layer.md#t-06--expression-evaluator)
+- [x] **TASK-P1-006** Spatial Index + Tests — [details](./03-02-tasks-kernel-layer.md#t-07--spatial-index)
+- [x] **TASK-P1-007** Timing / Theme / Catalog Constants — [details](./03-02-tasks-kernel-layer.md#t-08--timing--theme--catalog-constants)
 
 ---
 
@@ -36,9 +36,9 @@ index), theme/timing constants. Fully unit-testable.
 **Goal:** All editor-side state (viewport, selection, transient
 interaction) lives in `NodeEditor.Core`, still ImGui-free, testable via
 `FakeInputSource`.
-- [ ] **TASK-P2-001** ViewportState + SelectionState — [details](./03-03-tasks-viewmodel.md#t-09--viewportstate-and-selectionstate)
-- [ ] **TASK-P2-002** InteractionState — [details](./03-03-tasks-viewmodel.md#t-10--interactionstate)
-- [ ] **TASK-P2-003** GraphView Aggregator — [details](./03-03-tasks-viewmodel.md#t-11--graphview-aggregator)
+- [x] **TASK-P2-001** ViewportState + SelectionState — [details](./03-03-tasks-viewmodel.md#t-09--viewportstate-and-selectionstate)
+- [x] **TASK-P2-002** InteractionState — [details](./03-03-tasks-viewmodel.md#t-10--interactionstate)
+- [x] **TASK-P2-003** GraphView Aggregator — [details](./03-03-tasks-viewmodel.md#t-11--graphview-aggregator)
 
 ---
 
@@ -46,8 +46,8 @@ interaction) lives in `NodeEditor.Core`, still ImGui-free, testable via
 **Goal:** The main editor surface runs. Nodes/pins/wires render, drag
 and select work, mini-editors edit pin defaults inline. From this point
 on the demo app is the visual test harness.
-- [ ] **TASK-P3-001** Canvas Renderer (nodes, pins, wires, hit-testing, state machine) — [details](./03-04-task-canvas-renderer.md)
-- [ ] **TASK-P3-002** Built-in Mini-Editors (bool, int, float, vector, color, …) — [details](./03-05-task-mini-editors.md)
+- [x] **TASK-P3-001** Canvas Renderer (nodes, pins, wires, hit-testing, state machine) — [details](./03-04-task-canvas-renderer.md)
+- [x] **TASK-P3-002** Built-in Mini-Editors (bool, int, float, vector, color, …) — [details](./03-05-task-mini-editors.md)
 
 ---
 
@@ -55,11 +55,11 @@ on the demo app is the visual test harness.
 **Goal:** All side surfaces work: generic picker (reusable across 12+
 contexts), My Blueprint outline, Details inspector, Find bar, comments
 and reroutes.
-- [ ] **TASK-P4-001** Generic Picker Window — [details](./03-06-task-picker.md)
-- [ ] **TASK-P4-002** My Blueprint Panel — [details](./03-07-task-myblueprint-details.md#t-15--ui-my-blueprint-panel)
-- [ ] **TASK-P4-003** Details Panel — [details](./03-07-task-myblueprint-details.md#t-16--ui-details-panel)
-- [ ] **TASK-P4-004** Find Bar / Find-in-Asset Panel — [details](./03-08-task-find-comments.md#t-17--ui-find-bar-and-find-in-asset-panel)
-- [ ] **TASK-P4-005** Comments and Reroutes — [details](./03-08-task-find-comments.md#t-18--ui-comments-and-reroutes)
+- [x] **TASK-P4-001** Generic Picker Window — [details](./03-06-task-picker.md)
+- [x] **TASK-P4-002** My Blueprint Panel — [details](./03-07-task-myblueprint-details.md#t-15--ui-my-blueprint-panel)
+- [x] **TASK-P4-003** Details Panel — [details](./03-07-task-myblueprint-details.md#t-16--ui-details-panel)
+- [x] **TASK-P4-004** Find Bar / Find-in-Asset Panel — [details](./03-08-task-find-comments.md#t-17--ui-find-bar-and-find-in-asset-panel)
+- [x] **TASK-P4-005** Comments and Reroutes — [details](./03-08-task-find-comments.md#t-18--ui-comments-and-reroutes)
 
 ---
 
@@ -67,7 +67,7 @@ and reroutes.
 **Goal:** The editor publishes commands and status; the host's chrome
 (toolbar, menu, status bar, hotkeys) binds to them. Editor never draws
 chrome.
-- [ ] **TASK-P5-001** IEditorCommands + IEditorIndicators — [details](./03-09-task-action-api.md)
+- [x] **TASK-P5-001** IEditorCommands + IEditorIndicators — [details](./03-09-task-action-api.md)
 
 ---
 
