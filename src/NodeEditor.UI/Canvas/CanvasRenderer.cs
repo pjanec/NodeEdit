@@ -134,7 +134,7 @@ public sealed class CanvasRenderer
         _grid.Draw(view, dl, origin, size);
 
         // 6. Comment boxes — background layer (below nodes).
-        DrawComments(dl, view, foreground: false);
+        DrawComments(dl, view, foreground: false, visibleGraphRect);
 
         // 7. Wires — only those whose endpoints or waypoints are in the visible rect.
         _wires.DrawAll(view, dl, _layout.PinScreenPositions, visibleNodeIds, visibleGraphRect);
@@ -143,10 +143,10 @@ public sealed class CanvasRenderer
         _nodes.DrawAll(view, dl, _layout.NodeScreenRects, _layout.PinScreenPositions, _layout.ConnectedInputPins, visibleNodeIds);
 
         // 9. Comment boxes — foreground layer (header text on top of nodes).
-        DrawComments(dl, view, foreground: true);
+        DrawComments(dl, view, foreground: true, visibleGraphRect);
 
         // 10. Reroute waypoints.
-        ReroutesRenderer.Render(view.Model, view.Selection, view.Viewport, view.TypeSystem);
+        ReroutesRenderer.Render(view.Model, view.Selection, view.Viewport, view.TypeSystem, visibleNodeIds, visibleGraphRect);
 
         // 11. Pending wire being dragged.
         DrawPendingWire(view, dl);
@@ -161,7 +161,7 @@ public sealed class CanvasRenderer
 
     // ── Comments ──────────────────────────────────────────────────────────────
 
-    private static void DrawComments(ImDrawListPtr dl, GraphView view, bool foreground)
+    private static void DrawComments(ImDrawListPtr dl, GraphView view, bool foreground, RectF visibleGraphRect)
     {
         var theme = view.Host.Theme;
         var comments = view.Model.Comments.ToList();
@@ -169,6 +169,10 @@ public sealed class CanvasRenderer
 
         foreach (var comment in comments)
         {
+            var commentRect = new RectF(comment.Position, comment.Size);
+            if (!commentRect.Intersects(visibleGraphRect))
+                continue;
+
             var min = view.Viewport.GraphToScreen(comment.Position);
             var max = view.Viewport.GraphToScreen(comment.Position + comment.Size);
             float headerH = 20f * view.Viewport.Zoom;
