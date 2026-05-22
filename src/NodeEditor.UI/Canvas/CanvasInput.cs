@@ -29,7 +29,9 @@ internal sealed class CanvasInput
     {
         // Don't process canvas input when an ImGui widget has keyboard/mouse focus,
         // except when the active widget is the canvas background itself.
-        bool canvasHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.AllowWhenBlockedByActiveItem)
+        bool canvasHovered = ImGui.IsWindowHovered(
+                                 ImGuiHoveredFlags.AllowWhenBlockedByActiveItem
+                               | ImGuiHoveredFlags.AllowWhenBlockedByPopup)
                           && (!ImGui.IsAnyItemActive() || isCanvasBgActive);
 
         var input = view.Host.Input;
