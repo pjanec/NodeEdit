@@ -32,22 +32,83 @@ internal sealed class HitTester
         bool hasBestHit = false;
         var bestHit = HoverInfo.None;
         int bestZLayer = -1;
+        int bestSubLayer = -1;
         int bestPriority = int.MaxValue;
 
-        void SubmitHit(HoverInfo hit, int zLayer, int priority)
+        void SubmitHit(HoverInfo hit, int zLayer, int subLayer, int priority)
         {
-            if (zLayer > bestZLayer || (zLayer == bestZLayer && priority < bestPriority))
+            if (zLayer > bestZLayer
+                || (zLayer == bestZLayer && subLayer > bestSubLayer)
+                || (zLayer == bestZLayer && subLayer == bestSubLayer && priority < bestPriority))
             {
                 hasBestHit = true;
                 bestHit = hit;
                 bestZLayer = zLayer;
+                bestSubLayer = subLayer;
                 bestPriority = priority;
             }
         }
 
-        // 1. Reroutes (topmost interaction layer).
+        // 1. Comments
+        foreach (var comment in view.Model.Comments)
+        {
+            int subLayer = comment.ZOrder;
+            float headerHt = 20f;
+            var headerRect = new RectF(comment.Position, new Vector2(comment.Size.X, headerHt));
+            var bodyRect   = new RectF(
+                comment.Position + new Vector2(0f, headerHt),
+                new Vector2(comment.Size.X, comment.Size.Y - headerHt));
+            var resizeRect = new RectF(
+                comment.Position + comment.Size - new Vector2(12f, 12f),
+                new Vector2(12f, 12f));
+
+            if (resizeRect.Contains(mouseGraph))
+                SubmitHit(new HoverInfo { Kind = HoverKind.Comment, Comment = comment.Id, CommentZone = CommentHoverZone.ResizeHandle }, 4, subLayer, 1);
+            else if (headerRect.Contains(mouseGraph))
+                SubmitHit(new HoverInfo { Kind = HoverKind.Comment, Comment = comment.Id, CommentZone = CommentHoverZone.Header }, 4, subLayer, 2);
+            else if (bodyRect.Contains(mouseGraph))
+                SubmitHit(new HoverInfo { Kind = HoverKind.Comment, Comment = comment.Id, CommentZone = CommentHoverZone.Body }, 0, subLayer, 1);
+        }
+
+        // 2. Wires
+        int wireIndex = 0;
         foreach (var link in view.Model.Links)
         {
+            wireIndex++;
+            if (!pinPositions.TryGetValue(link.FromPin, out var a)) continue;
+            if (!pinPositions.TryGetValue(link.ToPin, out var b)) continue;
+
+            if (HitsWire(mouse, a, b, link, view.Viewport))
+                SubmitHit(new HoverInfo { Kind = HoverKind.Link, Link = link.Id }, 1, wireIndex, 1);
+        }
+
+        // 3. Nodes and Pins (same sub-layer uses model draw order).
+        int nodeIndex = 0;
+        float pinHitRadius = MathF.Max(10f, 7.5f * view.Viewport.Zoom);
+        foreach (var node in view.Model.Nodes)
+        {
+            nodeIndex++;
+            bool isForeground = view.Selection.Contains(SelectionEntry.OfNode(node.Id))
+                             || view.Interaction.DragOverridePositions.ContainsKey(node.Id);
+            int zLayer = isForeground ? 3 : 2;
+
+            var bounds = spatialIndex.GetBounds(node.Id);
+            if (bounds.HasValue && bounds.Value.Contains(mouseGraph))
+                SubmitHit(new HoverInfo { Kind = HoverKind.Node, Node = node.Id }, zLayer, nodeIndex, 2);
+
+            foreach (var pin in node.Pins)
+            {
+                if (!pinPositions.TryGetValue(pin.Id, out var screenPos)) continue;
+                if (Vector2.Distance(mouse, screenPos) <= pinHitRadius)
+                    SubmitHit(new HoverInfo { Kind = HoverKind.Pin, Pin = pin.Id }, zLayer, nodeIndex, 1);
+            }
+        }
+
+        // 4. Reroutes (topmost interaction layer).
+        int rerouteIndex = 0;
+        foreach (var link in view.Model.Links)
+        {
+            rerouteIndex++;
             for (int wi = 0; wi < link.Waypoints.Count; wi++)
             {
                 var pt = view.Viewport.GraphToScreen(link.Waypoints[wi]);
@@ -60,65 +121,10 @@ internal sealed class HitTester
                             Reroute = new RerouteRef(link.Id, wi),
                         },
                         zLayer: 5,
+                        subLayer: rerouteIndex,
                         priority: 1);
                 }
             }
-        }
-
-        // 2. Comments
-        var comments = view.Model.Comments.ToList();
-        comments.Sort((a, b) => b.ZOrder.CompareTo(a.ZOrder));
-        foreach (var comment in comments)
-        {
-            float headerHt = 20f;
-            var headerRect = new RectF(comment.Position, new Vector2(comment.Size.X, headerHt));
-            var bodyRect   = new RectF(
-                comment.Position + new Vector2(0f, headerHt),
-                new Vector2(comment.Size.X, comment.Size.Y - headerHt));
-            var resizeRect = new RectF(
-                comment.Position + comment.Size - new Vector2(12f, 12f),
-                new Vector2(12f, 12f));
-
-            if (resizeRect.Contains(mouseGraph))
-                SubmitHit(new HoverInfo { Kind = HoverKind.Comment, Comment = comment.Id, CommentZone = CommentHoverZone.ResizeHandle }, 4, 3);
-            else if (headerRect.Contains(mouseGraph))
-                SubmitHit(new HoverInfo { Kind = HoverKind.Comment, Comment = comment.Id, CommentZone = CommentHoverZone.Header }, 4, 4);
-            else if (bodyRect.Contains(mouseGraph))
-                SubmitHit(new HoverInfo { Kind = HoverKind.Comment, Comment = comment.Id, CommentZone = CommentHoverZone.Body }, 0, 6);
-        }
-
-        // 3. Pins
-        float pinHitRadius = MathF.Max(10f, 7.5f * view.Viewport.Zoom);
-        foreach (var (pinId, screenPos) in pinPositions)
-        {
-            if (Vector2.Distance(mouse, screenPos) > pinHitRadius) continue;
-
-            var pinModel = view.Model.FindPin(pinId);
-            if (pinModel == null) continue;
-
-            bool isForeground = view.Selection.Contains(SelectionEntry.OfNode(pinModel.OwnerNodeId))
-                             || view.Interaction.DragOverridePositions.ContainsKey(pinModel.OwnerNodeId);
-            int zLayer = isForeground ? 3 : 2;
-            SubmitHit(new HoverInfo { Kind = HoverKind.Pin, Pin = pinId }, zLayer, 2);
-        }
-
-        // 4. Node bodies
-        foreach (var nodeId in spatialIndex.QueryPoint(mouseGraph))
-        {
-            bool isForeground = view.Selection.Contains(SelectionEntry.OfNode(nodeId))
-                             || view.Interaction.DragOverridePositions.ContainsKey(nodeId);
-            int zLayer = isForeground ? 3 : 2;
-            SubmitHit(new HoverInfo { Kind = HoverKind.Node, Node = nodeId }, zLayer, 5);
-        }
-
-        // 5. Wires
-        foreach (var link in view.Model.Links)
-        {
-            if (!pinPositions.TryGetValue(link.FromPin, out var a)) continue;
-            if (!pinPositions.TryGetValue(link.ToPin, out var b)) continue;
-
-            if (HitsWire(mouse, a, b, link, view.Viewport))
-                SubmitHit(new HoverInfo { Kind = HoverKind.Link, Link = link.Id }, 1, 3);
         }
 
         view.Interaction.Hover = hasBestHit ? bestHit : HoverInfo.None;
