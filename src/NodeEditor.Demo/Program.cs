@@ -39,8 +39,10 @@ internal static class Program
         // structural UI (menus, toolbars, panels) continues to use it unchanged.
         io.Fonts.AddFontDefault();
 
-        // Resolve Arial and bake it at three discrete sizes for crisp text
-        // across the typical canvas zoom range (0.5× – 3×).
+        // Resolve Arial and bake it at four discrete sizes for crisp text
+        // across the typical canvas zoom range (0.3× – 3×).
+        // The 11px face covers the zoomed-out range where 16px would be
+        // downscaled and pixelate; each step up is roughly 1.45× larger.
         string? arialPath = ArialCandidates.FirstOrDefault(File.Exists);
 
         var fonts = new Dictionary<float, nint>();
@@ -53,6 +55,8 @@ internal static class Program
 
             unsafe
             {
+                fonts[8f] = (nint)io.Fonts.AddFontFromFileTTF(arialPath, 8f, null, glyphRanges).NativePtr;
+                fonts[11f] = (nint)io.Fonts.AddFontFromFileTTF(arialPath, 11f, null, glyphRanges).NativePtr;
                 fonts[16f] = (nint)io.Fonts.AddFontFromFileTTF(arialPath, 16f, null, glyphRanges).NativePtr;
                 fonts[24f] = (nint)io.Fonts.AddFontFromFileTTF(arialPath, 24f, null, glyphRanges).NativePtr;
                 fonts[32f] = (nint)io.Fonts.AddFontFromFileTTF(arialPath, 32f, null, glyphRanges).NativePtr;
