@@ -122,10 +122,24 @@ internal sealed class HitTester
             }
         }
 
-        // 5. Node bodies
+        // 5. Node bodies (match render z-priority: selected/dragged nodes on top).
+        NodeId? topNodeHit = null;
+        bool topIsForeground = false;
         foreach (var nodeId in spatialIndex.QueryPoint(mouseGraph))
         {
-            view.Interaction.Hover = new HoverInfo { Kind = HoverKind.Node, Node = nodeId };
+            bool isForeground = view.Selection.Contains(SelectionEntry.OfNode(nodeId))
+                             || view.Interaction.DragOverridePositions.ContainsKey(nodeId);
+
+            if (topNodeHit == null || (isForeground && !topIsForeground))
+            {
+                topNodeHit = nodeId;
+                topIsForeground = isForeground;
+            }
+        }
+
+        if (topNodeHit.HasValue)
+        {
+            view.Interaction.Hover = new HoverInfo { Kind = HoverKind.Node, Node = topNodeHit.Value };
             return;
         }
 

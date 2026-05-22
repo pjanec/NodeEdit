@@ -34,18 +34,22 @@ internal sealed class NodeRenderer
         float corner = theme.NodeCornerRadius * zoom;
         float border = theme.NodeBorderThickness * zoom;
 
-        // Pass 1: draw resting nodes (includes marquee-selected nodes).
+        // Pass 1: draw unselected, resting nodes.
         foreach (var nodeId in visibleNodes)
         {
-            if (view.Interaction.DragOverridePositions.ContainsKey(nodeId)) continue;
+            bool isSelected = view.Selection.Contains(SelectionEntry.OfNode(nodeId));
+            bool isDragged  = view.Interaction.DragOverridePositions.ContainsKey(nodeId);
+            if (isSelected || isDragged) continue;
             RenderSingleNode(view, dl, nodeId, nodeScreenRects, pinPositions, connectedInputPins,
                 theme, zoom, corner, border);
         }
 
-        // Pass 2: draw clicked/dragged nodes on top.
+        // Pass 2: draw selected or dragged nodes on top.
         foreach (var nodeId in visibleNodes)
         {
-            if (!view.Interaction.DragOverridePositions.ContainsKey(nodeId)) continue;
+            bool isSelected = view.Selection.Contains(SelectionEntry.OfNode(nodeId));
+            bool isDragged  = view.Interaction.DragOverridePositions.ContainsKey(nodeId);
+            if (!isSelected && !isDragged) continue;
             RenderSingleNode(view, dl, nodeId, nodeScreenRects, pinPositions, connectedInputPins,
                 theme, zoom, corner, border);
         }
