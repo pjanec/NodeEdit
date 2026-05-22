@@ -112,7 +112,20 @@ public sealed class FakeNodeCatalog : INodeCatalog
     }
 
     public IReadOnlyList<NodeCatalogEntry> QueryForPinContext(PinContextQuery q)
-        => Query(new NodeSearchQuery(q.Text));
+    {
+        var baseResults = Query(new NodeSearchQuery(q.Text));
+        var targetDir = q.SourceDirection == PinDirection.Output
+            ? PinDirection.Input
+            : PinDirection.Output;
+
+        return baseResults.Where(entry =>
+        {
+            var targetPins = targetDir == PinDirection.Input ? entry.Inputs : entry.Outputs;
+            return targetPins.Any(p =>
+                p.Kind == q.SourceKind &&
+                (q.SourceKind == PinKind.Exec || p.Type == q.SourceType));
+        }).ToList();
+    }
 
     // Helpers
     private static NodeCatalogEntry E(string kindId, string name, string cat,

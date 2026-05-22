@@ -391,11 +391,15 @@ internal sealed class CanvasInput
             {
                 // Dropped on empty canvas: suspend canvas input and open contextual picker.
                 view.Interaction.Mode = InteractionMode.PickerOpen;
+                var srcPin = view.Model.FindPin(pw.SourcePin);
 
                 var context = new Dictionary<string, object?>
                 {
                     ["sourcePinId"] = pw.SourcePin,
-                    ["cursorGraph"] = pw.CursorGraph
+                    ["cursorGraph"] = pw.CursorGraph,
+                    ["sourceDirection"] = srcPin?.Direction,
+                    ["sourceKind"] = srcPin?.Kind,
+                    ["sourceType"] = srcPin?.Type
                 };
 
                 view.Host.Pickers.Open(
@@ -407,6 +411,29 @@ internal sealed class CanvasInput
                         {
                             var newId = IdGenerator.NewNodeId();
                             view.Commands.Apply(new GraphCommand.AddNode(newId, entry.Kind, pw.CursorGraph, null));
+
+                            var newNode = view.Model.FindNode(newId);
+                            var srcPin = view.Model.FindPin(pw.SourcePin);
+
+                            if (newNode != null && srcPin != null)
+                            {
+                                var targetDir = srcPin.Direction == PinDirection.Output
+                                    ? PinDirection.Input
+                                    : PinDirection.Output;
+
+                                var compatiblePin = newNode.Pins.FirstOrDefault(p =>
+                                    p.Direction == targetDir &&
+                                    p.Kind == srcPin.Kind &&
+                                    (srcPin.Kind == PinKind.Exec || p.Type == srcPin.Type));
+
+                                if (compatiblePin != null)
+                                {
+                                    var linkId = LinkId.NewId();
+                                    var fromPin = srcPin.Direction == PinDirection.Output ? srcPin.Id : compatiblePin.Id;
+                                    var toPin = srcPin.Direction == PinDirection.Output ? compatiblePin.Id : srcPin.Id;
+                                    view.Commands.Apply(new GraphCommand.AddLink(linkId, fromPin, toPin));
+                                }
+                            }
                         }
                         view.Interaction.ResetToIdle();
                     },

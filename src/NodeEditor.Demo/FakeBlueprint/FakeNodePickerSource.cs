@@ -24,10 +24,18 @@ public sealed class FakeNodePickerSource : IPickerSource<NodeCatalogEntry>
     {
         if (context != null &&
             context.TryGetValue("sourcePinId", out var pinObj) &&
-            pinObj is PinId pinId)
+            pinObj is PinId pinId &&
+            context.TryGetValue("sourceDirection", out var dirObj) &&
+            dirObj is PinDirection dir &&
+            context.TryGetValue("sourceKind", out var kindObj) &&
+            kindObj is PinKind kind)
         {
+            var type = context.TryGetValue("sourceType", out var typeObj) && typeObj is TypeKey t
+                ? t
+                : (TypeKey?)null;
+
             return _catalog.QueryForPinContext(
-                new PinContextQuery(pinId, PinDirection.Output, PinKind.Data, null, text));
+                new PinContextQuery(pinId, dir, kind, type, text));
         }
 
         return _catalog.Query(new NodeSearchQuery(text));
