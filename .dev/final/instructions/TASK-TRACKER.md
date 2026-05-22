@@ -46,8 +46,8 @@ interaction) lives in `NodeEditor.Core`, still ImGui-free, testable via
 **Goal:** The main editor surface runs. Nodes/pins/wires render, drag
 and select work, mini-editors edit pin defaults inline. From this point
 on the demo app is the visual test harness.
-- [ ] **TASK-P3-001** Canvas Renderer (nodes, pins, wires, hit-testing, state machine) — [details](./03-04-task-canvas-renderer.md)
-- [ ] **TASK-P3-002** Built-in Mini-Editors (bool, int, float, vector, color, …) — [details](./03-05-task-mini-editors.md)
+- [x] **TASK-P3-001** Canvas Renderer (nodes, pins, wires, hit-testing, state machine) — [details](./03-04-task-canvas-renderer.md)
+- [x] **TASK-P3-002** Built-in Mini-Editors (bool, int, float, vector, color, …) — [details](./03-05-task-mini-editors.md)
 
 ---
 

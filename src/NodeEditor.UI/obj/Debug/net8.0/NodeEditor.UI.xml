@@ -292,6 +292,578 @@
         <member name="M:NodeEditor.UI.MiniEditors.VectorPinEditor.Draw(System.Object@,NodeEditor.Core.Interfaces.DefaultEditorContext,System.Boolean@)">
             <inheritdoc/>
         </member>
+        <member name="T:NodeEditor.UI.Panels.DetailsContext">
+            <summary>
+            Concrete implementation of <see cref="T:NodeEditor.Core.Interfaces.IDetailsContext"/>.
+            </summary>
+        </member>
+        <member name="T:NodeEditor.UI.Panels.DetailsRenderContext">
+            <summary>
+            Concrete implementation of <see cref="T:NodeEditor.Core.Interfaces.IDetailsRenderContext"/>.
+            </summary>
+        </member>
+        <member name="T:NodeEditor.UI.Panels.DetailsPanel">
+            <summary>
+            The Details panel. Render once per frame inside any ImGui window region.
+            Picks the best registered <see cref="T:NodeEditor.Core.Interfaces.IDetailsViewProvider"/> for the
+            current target and delegates rendering. Persists section collapse state
+            globally per section-name key.
+            </summary>
+        </member>
+        <member name="P:NodeEditor.UI.Panels.DetailsPanel.Target">
+            <summary>The current details target (drives view selection).</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Panels.DetailsPanel.ShowAdvanced">
+            <summary>Whether to show advanced (host-marked) sections.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Panels.DetailsPanel.ShowHelpTooltips">
+            <summary>Whether to show help tooltips on property labels.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.DetailsPanel.#ctor(NodeEditor.UI.Panels.IDetailsViewRegistry,NodeEditor.Core.Interfaces.IDetailsContext)">
+            <summary>
+            Construct the panel.
+            </summary>
+            <param name="registry">Provider registry.</param>
+            <param name="context">Details context passed to providers at build time.</param>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.DetailsPanel.Draw">
+            <summary>Draw inside the current ImGui region.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Panels.IDetailsViewRegistry">
+            <summary>
+            Registry of <see cref="T:NodeEditor.Core.Interfaces.IDetailsViewProvider"/> instances.
+            Providers are iterated in descending <see cref="P:NodeEditor.Core.Interfaces.IDetailsViewProvider.Priority"/> order;
+            the first whose <see cref="M:NodeEditor.Core.Interfaces.IDetailsViewProvider.CanHandle(NodeEditor.Core.Interfaces.DetailsTarget)"/> returns true wins.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.IDetailsViewRegistry.Register(NodeEditor.Core.Interfaces.IDetailsViewProvider)">
+            <summary>Register a view provider. Replaces any existing provider with the same type.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.IDetailsViewRegistry.GetViewFor(NodeEditor.Core.Interfaces.DetailsTarget,NodeEditor.Core.Interfaces.IDetailsContext)">
+            <summary>
+            Find the best view for the given target.
+            Returns null only if no provider handles the target (the caller should use FallbackDetailsView).
+            </summary>
+        </member>
+        <member name="T:NodeEditor.UI.Panels.DetailsViewRegistry">
+            <summary>Default implementation of <see cref="T:NodeEditor.UI.Panels.IDetailsViewRegistry"/>.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.DetailsViewRegistry.Register(NodeEditor.Core.Interfaces.IDetailsViewProvider)">
+            <inheritdoc/>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.DetailsViewRegistry.GetViewFor(NodeEditor.Core.Interfaces.DetailsTarget,NodeEditor.Core.Interfaces.IDetailsContext)">
+            <inheritdoc/>
+        </member>
+        <member name="T:NodeEditor.UI.Panels.MyBlueprintContextMenu">
+            <summary>
+            Renders the right-click context menu for My Blueprint items.
+            Each item kind gets a different menu per the spec (§D.6.8).
+            Actions are dispatched via <see cref="T:NodeEditor.Core.Action.IEditorCommands"/>.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.MyBlueprintContextMenu.Draw(NodeEditor.Core.Interfaces.MyBlueprintItem,NodeEditor.Core.Action.IEditorCommands,System.Action{System.String,System.String})">
+            <summary>
+            Draw the context menu popup for the given item.
+            Must be called immediately after the row selectable in the same ImGui ID scope.
+            </summary>
+        </member>
+        <member name="T:NodeEditor.UI.Panels.MyBlueprintDragSource">
+            <summary>
+            Helpers for registering ImGui drag-drop sources on My Blueprint item rows.
+            Stores the currently dragged item's ID in a thread-static so that drop
+            targets can read it without unsafe code.
+            </summary>
+        </member>
+        <member name="F:NodeEditor.UI.Panels.MyBlueprintDragSource.Variable">
+            <summary>Payload type strings per item kind.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Panels.MyBlueprintDragSource.CurrentPayloadType">
+            <summary>The payload type of the item currently being dragged, or null.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Panels.MyBlueprintDragSource.CurrentItemId">
+            <summary>The item id of the item currently being dragged, or null.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.MyBlueprintDragSource.BeginSource(System.String,System.String,System.String)">
+            <summary>
+            Begin a drag-drop source for the given item if the user starts dragging.
+            Returns true if dragging is active; caller must call EndSource() if so.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.MyBlueprintDragSource.EndSource">
+            <summary>End the drag-drop source (mirrors BeginSource's ImGui.BeginDragDropSource).</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.MyBlueprintDragSource.ClearState">
+            <summary>Clear drag state when drag ends (call from drop handler or on cancel).</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Panels.MyBlueprintItemRenderer">
+            <summary>
+            Renders a single My Blueprint item row.
+            Pixel layout: [selection bg] [indent] [accent dot 8px] [icon 16x16] [name] [badge chip] [tooltip ⓘ on hover]
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.MyBlueprintItemRenderer.Render(NodeEditor.Core.Interfaces.MyBlueprintItem,System.Boolean,NodeEditor.Core.Interfaces.IIconProvider,NodeEditor.Core.Interfaces.IEditorTheme,System.Collections.Generic.IReadOnlyList{System.Int32},System.Boolean@)">
+            <summary>
+            Render one item row.
+            Returns true if the user clicked it (triggers selection event).
+            Returns via <paramref name="doubleClicked"/> if user double-clicked.
+            </summary>
+        </member>
+        <member name="T:NodeEditor.UI.Panels.MyBlueprintPanel">
+            <summary>
+            The "My Blueprint" outline panel.
+            Render once per frame inside any ImGui window region.
+            Reads <see cref="T:NodeEditor.Core.Interfaces.IMyBlueprintModel"/> data; writes through editor
+            commands and triggers navigation via callbacks supplied at construction.
+            </summary>
+        </member>
+        <member name="E:NodeEditor.UI.Panels.MyBlueprintPanel.SelectionChanged">
+            <inheritdoc cref="E:NodeEditor.Core.Interfaces.IMyBlueprintModel.Changed"/>
+        </member>
+        <member name="P:NodeEditor.UI.Panels.MyBlueprintPanel.SelectedItem">
+            <summary>The currently selected item.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Panels.MyBlueprintPanel.SelectedSectionId">
+            <summary>The section id of the currently selected item.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.MyBlueprintPanel.#ctor(NodeEditor.Core.Interfaces.IMyBlueprintModel,NodeEditor.Core.Interfaces.IEditorHostServices,NodeEditor.Core.Action.IEditorCommands,System.Action{NodeEditor.Primitives.GraphId},System.Action{System.String,System.String})">
+            <summary>
+            Construct the panel.
+            </summary>
+            <param name="model">Data provider.</param>
+            <param name="host">Host services (icons, theme).</param>
+            <param name="commands">Command dispatcher.</param>
+            <param name="navigateToGraph">Called on double-click of a graph entry.</param>
+            <param name="navigateToItem">Called on double-click of any item (sectionId, itemId).</param>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.MyBlueprintPanel.Draw">
+            <summary>Draw the panel inside the current ImGui window/region.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Panels.Views.CommentDetailsView">
+            <summary>
+            Built-in Details view for a <see cref="T:NodeEditor.Core.Interfaces.DetailsTarget.Comment"/> target.
+            Renders editable fields for text, color, move-with-contents, position, and size.
+            Commits changes via <see cref="T:NodeEditor.Core.Commands.GraphCommand.UpdateComment"/>.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.Views.CommentDetailsView.#ctor(NodeEditor.Primitives.CommentId,NodeEditor.Core.Interfaces.IDetailsContext)">
+            <summary>Construct for the given comment.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Panels.Views.CommentDetailsView.IsDirty">
+            <inheritdoc/>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.Views.CommentDetailsView.Commit">
+            <inheritdoc/>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.Views.CommentDetailsView.Revert">
+            <inheritdoc/>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.Views.CommentDetailsView.Draw(NodeEditor.Core.Interfaces.IDetailsRenderContext)">
+            <inheritdoc/>
+        </member>
+        <member name="T:NodeEditor.UI.Panels.Views.FallbackDetailsView">
+            <summary>
+            Fallback details view: renders a read-only property tree via reflection
+            on whatever object the target resolves to. Shown when no registered
+            provider handles the current target.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.Views.FallbackDetailsView.#ctor(System.Object)">
+            <summary>Construct a fallback view for the given (possibly null) subject.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Panels.Views.FallbackDetailsView.IsDirty">
+            <inheritdoc/>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.Views.FallbackDetailsView.Commit">
+            <inheritdoc/>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.Views.FallbackDetailsView.Revert">
+            <inheritdoc/>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.Views.FallbackDetailsView.Draw(NodeEditor.Core.Interfaces.IDetailsRenderContext)">
+            <inheritdoc/>
+        </member>
+        <member name="T:NodeEditor.UI.Panels.Views.MultipleNodesDetailsView">
+            <summary>
+            Built-in Details view shown when multiple nodes are selected.
+            Displays the intersection of shared properties across the selection.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.Views.MultipleNodesDetailsView.#ctor(System.Collections.Generic.IReadOnlyList{NodeEditor.Primitives.NodeId})">
+            <summary>Construct for the given multi-selection.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Panels.Views.MultipleNodesDetailsView.IsDirty">
+            <inheritdoc/>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.Views.MultipleNodesDetailsView.Commit">
+            <inheritdoc/>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.Views.MultipleNodesDetailsView.Revert">
+            <inheritdoc/>
+        </member>
+        <member name="M:NodeEditor.UI.Panels.Views.MultipleNodesDetailsView.Draw(NodeEditor.Core.Interfaces.IDetailsRenderContext)">
+            <inheritdoc/>
+        </member>
+        <member name="T:NodeEditor.UI.Picker.FavoritesStore">
+            <summary>
+            In-memory store for starred ("favorite") picker entries, keyed by context key + item key.
+            When IEditorHostServices.Preferences is available the host may persist these externally;
+            this fallback keeps them for the duration of the session only.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.FavoritesStore.IsStarred(System.String,System.String)">
+            <summary>Return true if the given item is starred in the specified context.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.FavoritesStore.Toggle(System.String,System.String)">
+            <summary>Toggle the star state. Returns the new state.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.FavoritesStore.Star(System.String,System.String)">
+            <summary>Star an item explicitly.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.FavoritesStore.Unstar(System.String,System.String)">
+            <summary>Unstar an item explicitly.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.FavoritesStore.GetStarred(System.String)">
+            <summary>Return all starred item keys for a context.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Picker.Layouts.CompactLayout">
+            <summary>
+            Compact single-column layout: no detail pane, smaller default window (~320×360).
+            Used for enum value pickers and channel-action pickers.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.Layouts.CompactLayout.Draw(NodeEditor.UI.Picker.PickerState,NodeEditor.Core.Interfaces.IPickerRenderContext)">
+            <summary>Render the compact list (no detail pane).</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Picker.Layouts.GridLayout">
+            <summary>
+            Grid layout: 4-column thumbnail tiles (128×144 px each).
+            Used for asset pickers with visual thumbnails.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.Layouts.GridLayout.Draw(NodeEditor.UI.Picker.PickerState,NodeEditor.Core.Interfaces.IPickerRenderContext)">
+            <summary>Render the grid of tiles with a detail strip at the bottom.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Picker.Layouts.StandardLayout">
+            <summary>
+            Standard two-pane layout: filtered list on the left (~60%), detail pane on the right (~40%).
+            Supports Favorites and Recent header sections.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.Layouts.StandardLayout.Draw(NodeEditor.UI.Picker.PickerState,NodeEditor.Core.Interfaces.IPickerRenderContext)">
+            <summary>Render the list + detail split for the Standard layout.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Picker.Layouts.TreeLayout">
+            <summary>
+            Tree layout: hierarchical expand/collapse list built from each entry's
+            <see cref="P:NodeEditor.UI.Picker.PickerEntry.Category"/> path or from an explicit
+            <see cref="T:NodeEditor.UI.Picker.CategoryNode"/> tree.
+            Arrow ← / → collapse/expand nodes; ↑ / ↓ navigate.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.Layouts.TreeLayout.Draw(NodeEditor.UI.Picker.PickerState,NodeEditor.Core.Interfaces.IPickerRenderContext,NodeEditor.UI.Picker.CategoryNode)">
+            <summary>Render the tree view.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Picker.Layouts.WideLayout">
+            <summary>
+            Wide two-column layout: category tree sidebar (240 px) + item list with inline description.
+            Used for the node-search picker on dropped wire.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.Layouts.WideLayout.Draw(NodeEditor.UI.Picker.PickerState,NodeEditor.Core.Interfaces.IPickerRenderContext)">
+            <summary>Render the wide layout with category sidebar and item list.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Picker.PickerEntry">
+            <summary>
+            One row/cell in a picker window. Generic enough to support text, icon,
+            category breadcrumb, thumbnail, and an opaque caller payload.
+            </summary>
+            <param name="Id">Stable identity for favorites/recent persistence.</param>
+            <param name="Name">Primary label used for fuzzy search ranking.</param>
+            <param name="Description">Long description shown in the detail pane.</param>
+            <param name="Category">Category path "A/B/C" for Wide/Tree layouts.</param>
+            <param name="Keywords">Additional search terms beyond the display name.</param>
+            <param name="IconTextureId">Optional icon texture handle for Grid thumbnails or inline icons.</param>
+            <param name="Tag">Opaque caller payload returned via <see cref="T:NodeEditor.UI.Picker.PickerResult"/>.</param>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.PickerEntry.#ctor(System.String,System.String,System.String,System.String,System.Collections.Generic.IReadOnlyList{System.String},System.Nullable{System.IntPtr},System.Object)">
+            <summary>
+            One row/cell in a picker window. Generic enough to support text, icon,
+            category breadcrumb, thumbnail, and an opaque caller payload.
+            </summary>
+            <param name="Id">Stable identity for favorites/recent persistence.</param>
+            <param name="Name">Primary label used for fuzzy search ranking.</param>
+            <param name="Description">Long description shown in the detail pane.</param>
+            <param name="Category">Category path "A/B/C" for Wide/Tree layouts.</param>
+            <param name="Keywords">Additional search terms beyond the display name.</param>
+            <param name="IconTextureId">Optional icon texture handle for Grid thumbnails or inline icons.</param>
+            <param name="Tag">Opaque caller payload returned via <see cref="T:NodeEditor.UI.Picker.PickerResult"/>.</param>
+        </member>
+        <member name="P:NodeEditor.UI.Picker.PickerEntry.Id">
+            <summary>Stable identity for favorites/recent persistence.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Picker.PickerEntry.Name">
+            <summary>Primary label used for fuzzy search ranking.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Picker.PickerEntry.Description">
+            <summary>Long description shown in the detail pane.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Picker.PickerEntry.Category">
+            <summary>Category path "A/B/C" for Wide/Tree layouts.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Picker.PickerEntry.Keywords">
+            <summary>Additional search terms beyond the display name.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Picker.PickerEntry.IconTextureId">
+            <summary>Optional icon texture handle for Grid thumbnails or inline icons.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Picker.PickerEntry.Tag">
+            <summary>Opaque caller payload returned via <see cref="T:NodeEditor.UI.Picker.PickerResult"/>.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Picker.PickerItemListHelper">
+            <summary>
+            Shared helper for rendering a flat, virtualized item list inside a picker child window.
+            Used by Standard and Compact layouts. Handles selection, keyboard focus highlight,
+            right-click context menu (Favorite / Copy ID), and Favorites/Recent section headers.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.PickerItemListHelper.DrawItems(NodeEditor.UI.Picker.PickerState,NodeEditor.Core.Interfaces.IPickerRenderContext,System.Boolean)">
+            <summary>
+            Draw the full item list including Favorites and Recent pinned sections.
+            Must be called inside a child window.
+            </summary>
+        </member>
+        <member name="T:NodeEditor.UI.Picker.PickerRegistry">
+             <summary>
+             Default implementation of <see cref="T:NodeEditor.Core.Interfaces.IPickerRegistry"/> for the UI layer.
+             Hosts register typed <see cref="T:NodeEditor.Core.Interfaces.IPickerSource`1"/> instances here at startup;
+             the editor opens them via <see cref="M:NodeEditor.UI.Picker.PickerRegistry.Open(System.String,System.Numerics.Vector2,System.Action{System.Object},System.Action,System.Collections.Generic.IReadOnlyDictionary{System.String,System.Object})"/>.
+            
+             Additionally exposes <see cref="M:NodeEditor.UI.Picker.PickerRegistry.OpenPicker(NodeEditor.UI.Picker.PickerRequest,System.Action{NodeEditor.UI.Picker.PickerResult})"/> (entry-driven convenience API) and
+             <see cref="M:NodeEditor.UI.Picker.PickerRegistry.DrawFrame"/> which must be called once per ImGui frame by the host.
+             </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.PickerRegistry.SetServices(NodeEditor.Core.Interfaces.IIconProvider,NodeEditor.Core.Interfaces.IEditorTheme)">
+            <summary>
+            Provide rendering services (icons, theme) to the picker window.
+            Call once after construction if available.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.PickerRegistry.Register``1(System.String,NodeEditor.Core.Interfaces.IPickerSource{``0})">
+            <inheritdoc/>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.PickerRegistry.Get``1(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.PickerRegistry.Open(System.String,System.Numerics.Vector2,System.Action{System.Object},System.Action,System.Collections.Generic.IReadOnlyDictionary{System.String,System.Object})">
+            <inheritdoc/>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.PickerRegistry.OpenPicker(NodeEditor.UI.Picker.PickerRequest,System.Action{NodeEditor.UI.Picker.PickerResult})">
+            <summary>
+            Open the picker from a fully data-driven <see cref="T:NodeEditor.UI.Picker.PickerRequest"/>.
+            Calls <paramref name="onChosen"/> when the user confirms or cancels.
+            Cancels any previously open picker session.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.PickerRegistry.DrawFrame">
+            <summary>
+            Per-frame draw call. Must be invoked every ImGui frame by the host.
+            Renders the active picker window (if any); no-ops when picker is closed.
+            </summary>
+        </member>
+        <member name="T:NodeEditor.UI.Picker.CategoryNode">
+            <summary>
+            Category tree node used by the Wide and Tree layouts to display a sidebar
+            hierarchy. Build from <see cref="P:NodeEditor.UI.Picker.PickerEntry.Category"/> strings if the
+            host does not supply an explicit tree.
+            </summary>
+            <param name="Name">Display label for this category node.</param>
+            <param name="Children">Child nodes, may be empty.</param>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.CategoryNode.#ctor(System.String,System.Collections.Generic.IReadOnlyList{NodeEditor.UI.Picker.CategoryNode})">
+            <summary>
+            Category tree node used by the Wide and Tree layouts to display a sidebar
+            hierarchy. Build from <see cref="P:NodeEditor.UI.Picker.PickerEntry.Category"/> strings if the
+            host does not supply an explicit tree.
+            </summary>
+            <param name="Name">Display label for this category node.</param>
+            <param name="Children">Child nodes, may be empty.</param>
+        </member>
+        <member name="P:NodeEditor.UI.Picker.CategoryNode.Name">
+            <summary>Display label for this category node.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Picker.CategoryNode.Children">
+            <summary>Child nodes, may be empty.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Picker.PickerRequest">
+            <summary>
+            Caller-supplied input to open a picker via <see cref="M:NodeEditor.UI.Picker.PickerRegistry.OpenPicker(NodeEditor.UI.Picker.PickerRequest,System.Action{NodeEditor.UI.Picker.PickerResult})"/>.
+            Fully data-driven — the picker window renders items and emits the choice.
+            </summary>
+        </member>
+        <member name="P:NodeEditor.UI.Picker.PickerRequest.ContextKey">
+            <summary>Stable key identifying this picker context (favorites + recent persistence).</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Picker.PickerRequest.Title">
+            <summary>Window title shown to the user.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Picker.PickerRequest.Layout">
+            <summary>Layout to use for rendering items.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Picker.PickerRequest.SelectionMode">
+            <summary>Selection mode (single / multi / multi-ordered).</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Picker.PickerRequest.ItemsProvider">
+            <summary>Source of items. Called once and cached on first open.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Picker.PickerRequest.InitialQuery">
+            <summary>Initial search text (e.g. pre-filled from the dropped wire's type filter).</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Picker.PickerRequest.AnchorScreen">
+            <summary>Screen position to anchor the window to. Null = centered in main viewport.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Picker.PickerRequest.CategoryRoot">
+            <summary>Optional category tree for Wide/Tree layouts. Null = built from Category strings.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Picker.PickerResult">
+            <summary>
+            The result returned when a picker confirms or cancels.
+            An empty selection indicates cancellation.
+            </summary>
+            <param name="Selection">Entries chosen by the user. Empty when cancelled.</param>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.PickerResult.#ctor(System.Collections.Generic.IReadOnlyList{NodeEditor.UI.Picker.PickerEntry})">
+            <summary>
+            The result returned when a picker confirms or cancels.
+            An empty selection indicates cancellation.
+            </summary>
+            <param name="Selection">Entries chosen by the user. Empty when cancelled.</param>
+        </member>
+        <member name="P:NodeEditor.UI.Picker.PickerResult.Selection">
+            <summary>Entries chosen by the user. Empty when cancelled.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Picker.PickerResult.Cancelled">
+            <summary>True when the user dismissed the picker without confirming.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Picker.PickerResult.First">
+            <summary>First selected entry, or null when cancelled or multi-select produced no items.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Picker.IPickerSourceAdapter">
+            <summary>
+            Internal non-generic wrapper over <see cref="T:NodeEditor.Core.Interfaces.IPickerSource`1"/>
+            that erases the item type so the window can work with heterogeneous sources.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.IPickerSourceAdapter.Query(System.String,System.Collections.Generic.IReadOnlyDictionary{System.String,System.Object})">
+            <summary>Synchronous query; returns adapted items.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.IPickerSourceAdapter.QueryAsync(System.String,System.Collections.Generic.IReadOnlyDictionary{System.String,System.Object},System.Threading.CancellationToken)">
+            <summary>Async query; previous call should be cancelled via cts first.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.IPickerSourceAdapter.RenderItem(NodeEditor.UI.Picker.AdaptedItem,System.Boolean,System.Boolean,NodeEditor.Core.Interfaces.IPickerRenderContext)">
+            <summary>Delegate rendering to the source. Called only in source-driven mode.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.IPickerSourceAdapter.RenderPreview(NodeEditor.UI.Picker.AdaptedItem,NodeEditor.Core.Interfaces.IPickerRenderContext)">
+            <summary>Delegate preview rendering to the source.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.IPickerSourceAdapter.IsPreviewExpensive(NodeEditor.UI.Picker.AdaptedItem)">
+            <summary>Whether preview generation is expensive (should be deferred).</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Picker.AdaptedItem">
+            <summary>
+            An item returned from an adapter query. Carries the stable key, the
+            searchable text, and the original boxed item as <see cref="P:NodeEditor.UI.Picker.AdaptedItem.Raw"/>.
+            </summary>
+            <param name="Key">Stable string key from <see cref="M:NodeEditor.Core.Interfaces.IPickerSource`1.GetItemKey(`0)"/>.</param>
+            <param name="SearchText">Searchable text from <see cref="M:NodeEditor.Core.Interfaces.IPickerSource`1.GetSearchableText(`0)"/>.</param>
+            <param name="Raw">The original (unboxed) item.</param>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.AdaptedItem.#ctor(System.String,System.String,System.Object)">
+            <summary>
+            An item returned from an adapter query. Carries the stable key, the
+            searchable text, and the original boxed item as <see cref="P:NodeEditor.UI.Picker.AdaptedItem.Raw"/>.
+            </summary>
+            <param name="Key">Stable string key from <see cref="M:NodeEditor.Core.Interfaces.IPickerSource`1.GetItemKey(`0)"/>.</param>
+            <param name="SearchText">Searchable text from <see cref="M:NodeEditor.Core.Interfaces.IPickerSource`1.GetSearchableText(`0)"/>.</param>
+            <param name="Raw">The original (unboxed) item.</param>
+        </member>
+        <member name="P:NodeEditor.UI.Picker.AdaptedItem.Key">
+            <summary>Stable string key from <see cref="M:NodeEditor.Core.Interfaces.IPickerSource`1.GetItemKey(`0)"/>.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Picker.AdaptedItem.SearchText">
+            <summary>Searchable text from <see cref="M:NodeEditor.Core.Interfaces.IPickerSource`1.GetSearchableText(`0)"/>.</summary>
+        </member>
+        <member name="P:NodeEditor.UI.Picker.AdaptedItem.Raw">
+            <summary>The original (unboxed) item.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Picker.PickerSourceAdapter`1">
+            <summary>
+            Generic implementation of <see cref="T:NodeEditor.UI.Picker.IPickerSourceAdapter"/> that wraps
+            a concrete <see cref="T:NodeEditor.Core.Interfaces.IPickerSource`1"/>.
+            </summary>
+        </member>
+        <member name="T:NodeEditor.UI.Picker.PickerState">
+            <summary>
+            Internal per-frame state for an open picker session. Holds search text,
+            filtered/ranked item list, keyboard focus index, and per-context
+            favorites/recent stores.
+            </summary>
+        </member>
+        <member name="F:NodeEditor.UI.Picker.PickerState.AllEntries">
+            <summary>All entries from the source (cached after first query).</summary>
+        </member>
+        <member name="F:NodeEditor.UI.Picker.PickerState.Filtered">
+            <summary>Filtered and ranked entries for the current query.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.PickerState.Refilter">
+            <summary>Recompute <see cref="F:NodeEditor.UI.Picker.PickerState.Filtered"/> from <see cref="F:NodeEditor.UI.Picker.PickerState.AllEntries"/> using the current query.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.PickerState.Reset(System.String,System.String)">
+            <summary>Reset all transient state for a new picker session.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Picker.RankedEntry">
+            <summary>A single entry combined with its ranking data for the current query.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.RankedEntry.#ctor(NodeEditor.UI.Picker.PickerEntry,System.Int32,System.Collections.Generic.IReadOnlyList{System.Int32},System.Boolean,System.Boolean)">
+            <summary>A single entry combined with its ranking data for the current query.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Picker.PickerRenderContext">
+            <summary>
+            Internal concrete implementation of <see cref="T:NodeEditor.Core.Interfaces.IPickerRenderContext"/>.
+            </summary>
+        </member>
+        <member name="T:NodeEditor.UI.Picker.PickerWindow">
+            <summary>
+            The single floating picker window. Shared across all picker invocations;
+            a new Open() call cancels the previous one.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.PickerWindow.Open(NodeEditor.UI.Picker.PickerRequest,System.Action{NodeEditor.UI.Picker.PickerResult})">
+            <summary>Open the picker from a <see cref="T:NodeEditor.UI.Picker.PickerRequest"/>.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.PickerWindow.OpenFromAdapter(NodeEditor.UI.Picker.IPickerSourceAdapter,System.String,System.Numerics.Vector2,System.Action{System.Object},System.Action,System.Collections.Generic.IReadOnlyDictionary{System.String,System.Object})">
+            <summary>Open the picker using a registered <see cref="T:NodeEditor.UI.Picker.IPickerSourceAdapter"/>.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.PickerWindow.DrawFrame">
+            <summary>Render the picker window. Call once per ImGui frame.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Picker.RecentStore">
+            <summary>
+            In-memory store for recently picked items, capped to <see cref="F:NodeEditor.UI.Picker.RecentStore.MaxItems"/> per context.
+            Pushed on every confirmed pick; duplicates are moved to front.
+            </summary>
+        </member>
+        <member name="F:NodeEditor.UI.Picker.RecentStore.MaxItems">
+            <summary>Maximum number of recent entries retained per context key.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.RecentStore.Push(System.String,System.String)">
+            <summary>Record that <paramref name="itemKey"/> was picked in the given context.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.RecentStore.GetRecent(System.String)">
+            <summary>Return recent item keys in most-recent-first order.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.Picker.RecentStore.IsRecent(System.String,System.String)">
+            <summary>Return true if <paramref name="itemKey"/> appears in the recents list.</summary>
+        </member>
         <member name="T:NodeEditor.UI.Util.ImDrawListExtensions">
             <summary>
             Extension helpers for <see cref="T:ImGuiNET.ImDrawListPtr"/> that keep canvas-rendering
