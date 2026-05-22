@@ -41,6 +41,9 @@ public sealed class FakeHostServices : IEditorHostServices
         Input_         = new FakeInputSource();
         PickerRegistry_ = new PickerRegistry();
         PickerRegistry_.SetServices(new FakeIconProvider(), new FakeEditorTheme());
+        var nodePicker = new FakeNodePickerSource(NodeCatalog_);
+        PickerRegistry_.Register("nodes.all", nodePicker);
+        PickerRegistry_.Register("nodes.by-pin", nodePicker);
 
         // Assign interface properties
         NodeCatalog  = NodeCatalog_;

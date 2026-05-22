@@ -97,10 +97,19 @@ internal sealed class CanvasInput
         if (canvasHovered && input.IsKeyPressed(EditorKey.Tab))
         {
             view.Interaction.Mode = InteractionMode.PickerOpen;
+            var graphPos = view.Viewport.ScreenToGraph(input.MousePosition);
             view.Host.Pickers.Open(
                 "nodes.all",
                 input.MousePosition,
-                _ => view.Interaction.ResetToIdle(),
+                pick =>
+                {
+                    if (pick is NodeCatalogEntry entry)
+                    {
+                        var newId = IdGenerator.NewNodeId();
+                        view.Commands.Apply(new GraphCommand.AddNode(newId, entry.Kind, graphPos, null));
+                    }
+                    view.Interaction.ResetToIdle();
+                },
                 () => view.Interaction.ResetToIdle());
             return;
         }
@@ -392,7 +401,15 @@ internal sealed class CanvasInput
                 view.Host.Pickers.Open(
                     "nodes.by-pin",
                     input.MousePosition,
-                    _ => view.Interaction.ResetToIdle(),
+                    pick =>
+                    {
+                        if (pick is NodeCatalogEntry entry)
+                        {
+                            var newId = IdGenerator.NewNodeId();
+                            view.Commands.Apply(new GraphCommand.AddNode(newId, entry.Kind, pw.CursorGraph, null));
+                        }
+                        view.Interaction.ResetToIdle();
+                    },
                     () => view.Interaction.ResetToIdle(),
                     context);
             }
