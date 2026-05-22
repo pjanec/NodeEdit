@@ -172,11 +172,14 @@ public sealed class CanvasRenderer
             view.Interaction.ContextMenuScreen = null;
         }
 
+        // Restore normal popup content spacing even when the canvas window uses zero padding.
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(8f, 8f));
         if (ImGui.BeginPopup("##canvas_ctx"))
         {
             DrawContextMenu(view);
             ImGui.EndPopup();
         }
+        ImGui.PopStyleVar();
     }
 
     // ── Comments ──────────────────────────────────────────────────────────────
