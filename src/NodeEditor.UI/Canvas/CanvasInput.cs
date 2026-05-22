@@ -194,7 +194,7 @@ internal sealed class CanvasInput
     private static void HandlePanning(GraphView view, IInputSource input)
     {
         if (input.MouseDelta != Vector2.Zero)
-            view.Viewport.PanScreen(input.MouseDelta);
+            view.Viewport.PanScreen(-input.MouseDelta);
 
         if (input.IsMouseReleased(MouseButton.Right))
             view.Interaction.ResetToIdle();
