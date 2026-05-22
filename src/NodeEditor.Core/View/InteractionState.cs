@@ -52,6 +52,16 @@ public sealed class InteractionState
     /// <summary>Screen position of the right-click that opened a context menu (if any).</summary>
     public Vector2? ContextMenuScreen { get; set; }
 
+    /// <summary>Optional active viewport tween (camera animation to a bookmark).</summary>
+    public ViewportTween? ActiveTween { get; private set; }
+
+    /// <summary>Begin a smooth camera animation to the given pan/zoom over the specified duration.</summary>
+    public void BeginViewportTween(Vector2 targetPan, float targetZoom, double durationMs)
+        => ActiveTween = new ViewportTween(targetPan, targetZoom, durationMs);
+
+    /// <summary>Clear the active tween (called by renderer once the tween completes or is interrupted).</summary>
+    public void ClearTween() => ActiveTween = null;
+
     /// <summary>Reset to Idle: clears mode, drag overrides, marquee, pending wire.</summary>
     public void ResetToIdle()
     {
@@ -65,5 +75,31 @@ public sealed class InteractionState
         MarqueeTouchMode = false;
         PendingWire = null;
         ContextMenuScreen = null;
+    }
+}
+
+/// <summary>Describes a camera-to-bookmark viewport animation.</summary>
+public sealed class ViewportTween
+{
+    public Vector2 TargetPan  { get; }
+    public float   TargetZoom { get; }
+    public double  DurationMs { get; }
+    public double  ElapsedMs  { get; private set; }
+
+    public ViewportTween(Vector2 targetPan, float targetZoom, double durationMs)
+    {
+        TargetPan  = targetPan;
+        TargetZoom = targetZoom;
+        DurationMs = durationMs;
+    }
+
+    public bool IsComplete => ElapsedMs >= DurationMs;
+
+    /// <summary>Advance the tween by <paramref name="deltaMs"/> and return the progress 0..1 (ease-out).</summary>
+    public float Advance(double deltaMs)
+    {
+        ElapsedMs += deltaMs;
+        var t = (float)Math.Min(ElapsedMs / DurationMs, 1.0);
+        return 1f - (1f - t) * (1f - t); // ease-out quadratic
     }
 }

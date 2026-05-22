@@ -74,17 +74,17 @@ chrome.
 ## Phase 6 — Demo Application
 **Goal:** The editor library runs end-to-end against a fake host. Proves
 every spec'd feature with at least one scenario.
-- [ ] **TASK-P6-001** Fake Host + Canvas Scenarios 1–6 — [details](./03-10-task-demo.md#t-20--demo-fake-host--scenarios-16)
-- [ ] **TASK-P6-002** Picker Scenarios 7–12 — [details](./03-10-task-demo.md#t-21--demo-picker-scenarios-712)
-- [ ] **TASK-P6-003** Debugger Visualization Mock — [details](./03-10-task-demo.md#t-22--demo-debugger-visualization-mock)
+- [x] **TASK-P6-001** Fake Host + Canvas Scenarios 1–6 — [details](./03-10-task-demo.md#t-20--demo-fake-host--scenarios-16)
+- [x] **TASK-P6-002** Picker Scenarios 7–12 — [details](./03-10-task-demo.md#t-21--demo-picker-scenarios-712)
+- [x] **TASK-P6-003** Debugger Visualization Mock — [details](./03-10-task-demo.md#t-22--demo-debugger-visualization-mock)
 
 ---
 
 ## Phase 7 — Polish Features
 **Goal:** Bookmark slots and hot-reload visual feedback. Both are
 small, both are highly visible.
-- [ ] **TASK-P7-001** Bookmarks (Ctrl+1..9 jump, Ctrl+Shift+1..9 set) — [details](./03-11-tasks-final.md#t-23--bookmarks)
-- [ ] **TASK-P7-002** Hot-Reload Badges + Toast — [details](./03-11-tasks-final.md#t-24--hot-reload-badges)
+- [x] **TASK-P7-001** Bookmarks (Ctrl+1..9 jump, Ctrl+Shift+1..9 set) — [details](./03-11-tasks-final.md#t-23--bookmarks)
+- [x] **TASK-P7-002** Hot-Reload Badges + Toast — [details](./03-11-tasks-final.md#t-24--hot-reload-badges)
 
 ---
 

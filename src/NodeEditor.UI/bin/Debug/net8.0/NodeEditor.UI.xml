@@ -46,6 +46,34 @@
         <member name="M:NodeEditor.UI.Action.ViewCommands.Register(NodeEditor.Core.Action.EditorCommandsImpl,NodeEditor.Core.View.GraphView)">
             <summary>Register all view commands.</summary>
         </member>
+        <member name="T:NodeEditor.UI.Bookmarks.BookmarkCommands">
+            <summary>
+            Registers Ctrl+1..9 (jump) and Ctrl+Shift+1..9 (set) bookmark commands.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Bookmarks.BookmarkCommands.RegisterAll(NodeEditor.Core.Action.EditorCommandsImpl,NodeEditor.Core.View.GraphView,NodeEditor.Core.Bookmarks.BookmarkStore,System.Action{NodeEditor.Primitives.GraphId})">
+            <summary>Register all 18 bookmark commands (set + jump × 9 slots).</summary>
+        </member>
+        <member name="T:NodeEditor.UI.Bookmarks.BookmarkEdgeMarkerRenderer">
+            <summary>
+            Canvas overlay renderer that draws arrows at the canvas edges pointing to
+            off-screen bookmarks in slots 1-9.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Bookmarks.BookmarkEdgeMarkerRenderer.Render(NodeEditor.Core.View.GraphView,NodeEditor.Core.Bookmarks.BookmarkStore,NodeEditor.Core.Interfaces.IEditorTheme)">
+            <summary>
+            Render edge-markers for bookmarks that are off-screen.
+            Call during the canvas overlay phase (after nodes/wires).
+            </summary>
+        </member>
+        <member name="T:NodeEditor.UI.Bookmarks.BookmarksPanel">
+            <summary>
+            Side-panel listing all bookmarks. V1 implementation: read-only list with slot numbers.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.Bookmarks.BookmarksPanel.Draw">
+            <summary>Draw the panel contents. Call inside an <c>ImGui.Begin</c>/<c>End</c> pair.</summary>
+        </member>
         <member name="T:NodeEditor.UI.Canvas.CanvasInput">
              <summary>
              Per-frame input handler. Reads from <see cref="T:NodeEditor.Core.Interfaces.IInputSource"/> and ImGui
@@ -401,6 +429,40 @@
         </member>
         <member name="F:NodeEditor.UI.Find.FindScope.WholeProject">
             <summary>Search the entire project.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.HotReload.ChangeBadgeRenderer">
+            <summary>
+            Canvas overlay renderer that draws fading change-kind badges on affected nodes.
+            Call during the canvas overlay phase after nodes/wires.
+            </summary>
+        </member>
+        <member name="T:NodeEditor.UI.HotReload.ChangeNotifier">
+            <summary>
+            Subscribes to <see cref="E:NodeEditor.Core.Interfaces.IGraphModel.Changed"/>, records changes in a
+            <see cref="T:NodeEditor.UI.HotReload.RecentChanges"/> ring buffer, posts editor notifications (toasts),
+            and clears the undo stack on wholesale reloads.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.HotReload.ChangeNotifier.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="T:NodeEditor.UI.HotReload.RecentChanges">
+            <summary>
+            Ring buffer of recent <see cref="T:NodeEditor.Core.Interfaces.GraphChangeNotification"/> entries.
+            Used to render fading badges on affected nodes.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.UI.HotReload.RecentChanges.Add(NodeEditor.Core.Interfaces.GraphChangeNotification,System.TimeSpan)">
+            <summary>Record a new change notification at the given wall-clock elapsed time.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.HotReload.RecentChanges.GetBadgeOpacity(NodeEditor.Primitives.NodeId,System.TimeSpan)">
+            <summary>Returns 0..1 opacity for a node's badge, or 0 if no badge.</summary>
+        </member>
+        <member name="M:NodeEditor.UI.HotReload.RecentChanges.GetBadgeKind(NodeEditor.Primitives.NodeId,System.TimeSpan)">
+            <summary>Returns the kind of badge (Added/Removed/Modified) or null.</summary>
+        </member>
+        <member name="T:NodeEditor.UI.HotReload.ChangeBadgeKind">
+            <summary>Kind of change badge to display on a node.</summary>
         </member>
         <member name="T:NodeEditor.UI.MiniEditors.ArrayPinEditor">
             <summary>

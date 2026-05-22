@@ -155,6 +155,43 @@
         <member name="M:NodeEditor.Core.Action.ToastQueue.TryDequeue(NodeEditor.Core.Action.EditorNotification@)">
             <summary>Dequeue the next notification, or return false if empty.</summary>
         </member>
+        <member name="T:NodeEditor.Core.Bookmarks.Bookmark">
+            <summary>One bookmark targeting a specific viewport on a graph.</summary>
+        </member>
+        <member name="M:NodeEditor.Core.Bookmarks.Bookmark.#ctor(System.String,NodeEditor.Primitives.GraphId,System.String,System.Numerics.Vector2,System.Single,System.Int32,System.DateTime)">
+            <summary>One bookmark targeting a specific viewport on a graph.</summary>
+        </member>
+        <member name="T:NodeEditor.Core.Bookmarks.BookmarkStore">
+            <summary>
+            Per-asset bookmark collection. Persisted as JSON in editor session state.
+            Supports 9 hotkey slots (1-9) plus unbound bookmarks (slot 0).
+            </summary>
+        </member>
+        <member name="P:NodeEditor.Core.Bookmarks.BookmarkStore.All">
+            <summary>All bookmarks, bound and unbound.</summary>
+        </member>
+        <member name="M:NodeEditor.Core.Bookmarks.BookmarkStore.GetSlot(System.Int32)">
+            <summary>Returns the bookmark in slot 1-9, or null if the slot is empty.</summary>
+        </member>
+        <member name="M:NodeEditor.Core.Bookmarks.BookmarkStore.SetSlot(System.Int32,NodeEditor.Core.Bookmarks.Bookmark)">
+            <summary>
+            Add or replace a bookmark in the given slot.
+            If <paramref name="slot"/> is in [1,9] and already occupied, the previous
+            occupant's slot number is reset to 0 (unbound) but not removed.
+            </summary>
+        </member>
+        <member name="M:NodeEditor.Core.Bookmarks.BookmarkStore.Remove(System.String)">
+            <summary>Remove a bookmark by id. Returns true if it existed.</summary>
+        </member>
+        <member name="M:NodeEditor.Core.Bookmarks.BookmarkStore.PurgeOrphans(System.Collections.Generic.IReadOnlyCollection{NodeEditor.Primitives.GraphId})">
+            <summary>Remove bookmarks whose target graph no longer exists.</summary>
+        </member>
+        <member name="M:NodeEditor.Core.Bookmarks.BookmarkStore.ToJson">
+            <summary>Serialize to JSON for session-state persistence.</summary>
+        </member>
+        <member name="M:NodeEditor.Core.Bookmarks.BookmarkStore.FromJson(System.String)">
+            <summary>Load from JSON; replaces existing contents.</summary>
+        </member>
         <member name="T:NodeEditor.Core.CommandCatalog">
             <summary>
             Canonical command-ID strings. Keep in sync with spec D.0 and the
@@ -1267,8 +1304,23 @@
         <member name="P:NodeEditor.Core.View.InteractionState.ContextMenuScreen">
             <summary>Screen position of the right-click that opened a context menu (if any).</summary>
         </member>
+        <member name="P:NodeEditor.Core.View.InteractionState.ActiveTween">
+            <summary>Optional active viewport tween (camera animation to a bookmark).</summary>
+        </member>
+        <member name="M:NodeEditor.Core.View.InteractionState.BeginViewportTween(System.Numerics.Vector2,System.Single,System.Double)">
+            <summary>Begin a smooth camera animation to the given pan/zoom over the specified duration.</summary>
+        </member>
+        <member name="M:NodeEditor.Core.View.InteractionState.ClearTween">
+            <summary>Clear the active tween (called by renderer once the tween completes or is interrupted).</summary>
+        </member>
         <member name="M:NodeEditor.Core.View.InteractionState.ResetToIdle">
             <summary>Reset to Idle: clears mode, drag overrides, marquee, pending wire.</summary>
+        </member>
+        <member name="T:NodeEditor.Core.View.ViewportTween">
+            <summary>Describes a camera-to-bookmark viewport animation.</summary>
+        </member>
+        <member name="M:NodeEditor.Core.View.ViewportTween.Advance(System.Double)">
+            <summary>Advance the tween by <paramref name="deltaMs"/> and return the progress 0..1 (ease-out).</summary>
         </member>
         <member name="T:NodeEditor.Core.View.PendingWire">
             <summary>
