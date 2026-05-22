@@ -93,6 +93,18 @@ internal sealed class CanvasInput
         var hover = view.Interaction.Hover;
         var modifiers = input.Modifiers;
 
+        // Tab on canvas opens the generic node picker.
+        if (canvasHovered && input.IsKeyPressed(EditorKey.Tab))
+        {
+            view.Interaction.Mode = InteractionMode.PickerOpen;
+            view.Host.Pickers.Open(
+                "nodes.all",
+                input.MousePosition,
+                _ => view.Interaction.ResetToIdle(),
+                () => view.Interaction.ResetToIdle());
+            return;
+        }
+
         // Right-mouse → pan
         if (canvasHovered && input.IsMousePressed(MouseButton.Right))
         {
@@ -357,12 +369,33 @@ internal sealed class CanvasInput
 
         if (input.IsMouseReleased(MouseButton.Left))
         {
-            if (pw.CandidateTarget.HasValue && pw.CandidateValid)
+            if (pw.CandidateTarget.HasValue)
             {
-                var newId = LinkId.NewId();
-                view.Commands.Apply(new GraphCommand.AddLink(newId, pw.SourcePin, pw.CandidateTarget.Value));
+                if (pw.CandidateValid)
+                {
+                    var newId = LinkId.NewId();
+                    view.Commands.Apply(new GraphCommand.AddLink(newId, pw.SourcePin, pw.CandidateTarget.Value));
+                }
+                view.Interaction.ResetToIdle();
             }
-            view.Interaction.ResetToIdle();
+            else
+            {
+                // Dropped on empty canvas: suspend canvas input and open contextual picker.
+                view.Interaction.Mode = InteractionMode.PickerOpen;
+
+                var context = new Dictionary<string, object?>
+                {
+                    ["sourcePinId"] = pw.SourcePin,
+                    ["cursorGraph"] = pw.CursorGraph
+                };
+
+                view.Host.Pickers.Open(
+                    "nodes.by-pin",
+                    input.MousePosition,
+                    _ => view.Interaction.ResetToIdle(),
+                    () => view.Interaction.ResetToIdle(),
+                    context);
+            }
         }
         else if (input.IsMouseReleased(MouseButton.Right))
         {
