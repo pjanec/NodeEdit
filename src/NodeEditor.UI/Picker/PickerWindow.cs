@@ -228,7 +228,7 @@ public sealed class PickerWindow
     {
         HandleKeyboardNavigation();
 
-        if (ImGui.Button("OK") || ImGui.IsKeyPressed(ImGuiKey.Enter))
+        if (_state.Confirmed || ImGui.Button("OK") || ImGui.IsKeyPressed(ImGuiKey.Enter))
         {
             Confirm();
             return;
