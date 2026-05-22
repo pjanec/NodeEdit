@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("NodeEditor.Demo")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+13940064d6d607e24c924229b55e06f9435c1b2e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a1944e6a1ec24b3101bdd39774893a7b2cc1bafb")]
 [assembly: System.Reflection.AssemblyProductAttribute("NodeEditor.Demo")]
 [assembly: System.Reflection.AssemblyTitleAttribute("NodeEditor.Demo")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

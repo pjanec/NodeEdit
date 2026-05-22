@@ -91,7 +91,7 @@ small, both are highly visible.
 ## Phase 8 — Final
 **Goal:** Zero-warning build, complete XML docs, demo polish, README
 updated, every checklist item in the acceptance pass green.
-- [ ] **TASK-P8-001** Final Polish + Warnings Cleanup — [details](./03-11-tasks-final.md#t-25--final-polish--warnings-cleanup)
+- [x] **TASK-P8-001** Final Polish + Warnings Cleanup — [details](./03-11-tasks-final.md#t-25--final-polish--warnings-cleanup)
 
 ---
 
