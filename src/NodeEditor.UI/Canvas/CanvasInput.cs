@@ -154,6 +154,8 @@ internal sealed class CanvasInput
                         if (existingLink != null)
                         {
                             view.Commands.Apply(new GraphCommand.RemoveLinks(new[] { existingLink.Id }));
+                            view.Interaction.DragStartScreen = input.MousePosition;
+                            view.Interaction.DragThresholdCrossed = false;
                             view.Interaction.Mode = InteractionMode.PendingWire;
                             view.Interaction.PendingWire = new PendingWire
                             {
@@ -165,6 +167,8 @@ internal sealed class CanvasInput
                     }
 
                     // Start wire drag from pin
+                    view.Interaction.DragStartScreen = input.MousePosition;
+                    view.Interaction.DragThresholdCrossed = false;
                     view.Interaction.Mode = InteractionMode.PendingWire;
                     view.Interaction.PendingWire = new PendingWire
                     {
@@ -412,6 +416,13 @@ internal sealed class CanvasInput
         var pw = view.Interaction.PendingWire;
         if (pw == null) { view.Interaction.ResetToIdle(); return; }
 
+        var delta = input.MousePosition - view.Interaction.DragStartScreen;
+        if (!view.Interaction.DragThresholdCrossed
+            && delta.Length() > TimingConstants.DragThresholdPixels)
+        {
+            view.Interaction.DragThresholdCrossed = true;
+        }
+
         pw.CursorGraph = view.Viewport.ScreenToGraph(input.MousePosition);
 
         // Check for candidate pin under cursor
@@ -433,16 +444,38 @@ internal sealed class CanvasInput
 
         if (input.IsMouseReleased(MouseButton.Left))
         {
-            if (pw.CandidateTarget.HasValue)
+            var dropHover = view.Interaction.Hover;
+
+            if (pw.CandidateTarget.HasValue && pw.CandidateValid)
             {
-                if (pw.CandidateValid)
-                {
-                    var newId = LinkId.NewId();
-                    view.Commands.Apply(new GraphCommand.AddLink(newId, pw.SourcePin, pw.CandidateTarget.Value));
-                }
+                var newId = LinkId.NewId();
+                view.Commands.Apply(new GraphCommand.AddLink(newId, pw.SourcePin, pw.CandidateTarget.Value));
                 view.Interaction.ResetToIdle();
             }
-            else
+            else if (dropHover.Kind == HoverKind.Pin)
+            {
+                // Dropped on an invalid pin (including source pin): silent abort.
+                view.Interaction.ResetToIdle();
+            }
+            else if (dropHover.Kind == HoverKind.Node)
+            {
+                var node = view.Model.FindNode(dropHover.Node);
+                if (node != null)
+                {
+                    var compatiblePin = node.Pins.FirstOrDefault(p =>
+                        p.Id != pw.SourcePin
+                        && view.Validator.Validate(pw.SourcePin, p.Id).Verdict != LinkValidity.Invalid);
+
+                    if (compatiblePin != null)
+                    {
+                        var linkId = LinkId.NewId();
+                        view.Commands.Apply(new GraphCommand.AddLink(linkId, pw.SourcePin, compatiblePin.Id));
+                    }
+                }
+
+                view.Interaction.ResetToIdle();
+            }
+            else if (dropHover.Kind == HoverKind.None && view.Interaction.DragThresholdCrossed)
             {
                 // Dropped on empty canvas: suspend canvas input and open contextual picker.
                 view.Interaction.Mode = InteractionMode.PickerOpen;
@@ -494,6 +527,11 @@ internal sealed class CanvasInput
                     },
                     () => view.Interaction.ResetToIdle(),
                     context);
+            }
+            else
+            {
+                // Empty-canvas click without drag, or drop on wire/reroute/comment: silent abort.
+                view.Interaction.ResetToIdle();
             }
         }
         else if (input.IsMouseReleased(MouseButton.Right))
