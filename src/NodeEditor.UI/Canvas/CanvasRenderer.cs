@@ -91,6 +91,7 @@ public sealed class CanvasRenderer
 
         // Claim the full canvas area as a hit target to consume clicks and prevent window dragging.
         ImGui.SetCursorScreenPos(origin);
+        ImGui.SetNextItemAllowOverlap();
         ImGui.InvisibleButton("##canvas_bg", size);
         bool isCanvasBgActive = ImGui.IsItemActive();
 

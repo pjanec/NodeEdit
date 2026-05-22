@@ -226,9 +226,17 @@ internal sealed class NodeRenderer
         if (visibleInputPins.Count == 0) return;
 
         float editorWidthPx = EditorWidthGu * zoom;
+        float targetFontSize = ImGui.GetFontSize() * zoom;
+        nint fontPtr = view.Host.Theme.GetFontForSize(targetFontSize);
+        bool useFont = fontPtr != 0;
+
+        unsafe
+        {
+            if (useFont) ImGui.PushFont(new ImFontPtr((ImFont*)(void*)fontPtr));
+        }
+
         float pinCenterX = nodeRect.Min.X + CanvasLayoutBuilder.NodeHorizPadGu * zoom;
         float maxLabelWidthPx = 0f;
-        float targetFontSize = ImGui.GetFontSize() * zoom;
         var font = ImGui.GetFont();
 
         foreach (var p in node.Pins.Where(x => x.Direction == PinDirection.Input && (!x.IsAdvanced || node.ShowAdvancedPins)))
@@ -275,5 +283,8 @@ internal sealed class NodeRenderer
                 view.Commands.Apply(new GraphCommand.SetPinDefault(pin.Id, currentValue));
             }
         }
+
+        if (useFont)
+            ImGui.PopFont();
     }
 }
