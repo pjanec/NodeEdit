@@ -394,10 +394,8 @@ public sealed class DemoShell
             _host.MyBlueprint, _host, _commands,
             NavigateToGraph, NavigateToItem);
 
-        var editorReg  = PinDefaultValueEditorRegistry.CreateWithBuiltins();
-
         var detailsReg = new DetailsViewRegistry();
-        var detailsCtx = new DetailsContextProxy(_host.CommandSink_, editorReg, _host.Icons, _host.Theme);
+        var detailsCtx = new DetailsContextProxy(_host.CommandSink_, _host.EditorRegistry, _host.Icons, _host.Theme);
         _details = new DetailsPanel(detailsReg, detailsCtx);
 
         _commands = new EditorCommandsImpl();

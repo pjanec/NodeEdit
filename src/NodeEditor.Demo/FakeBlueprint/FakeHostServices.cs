@@ -1,6 +1,7 @@
 using NodeEditor.Core.Action;
 using NodeEditor.Core.Interfaces;
 using NodeEditor.UI.Picker;
+using NodeEditor.UI.MiniEditors;
 
 namespace NodeEditor.Demo.FakeBlueprint;
 
@@ -16,6 +17,7 @@ public sealed class FakeHostServices : IEditorHostServices
     public FakeInputSource    Input_        { get; }
     public PickerRegistry     PickerRegistry_ { get; }
     public ToastQueue         ToastQueue_   { get; } = new();
+    public IPinDefaultValueEditorRegistry EditorRegistry { get; }
 
     // IEditorHostServices
     public INodeCatalog        NodeCatalog { get; }
@@ -34,7 +36,8 @@ public sealed class FakeHostServices : IEditorHostServices
     {
         Graph          = graph;
         NodeCatalog_   = new FakeNodeCatalog();
-        TypeSystem_    = new FakeTypeSystem();
+        EditorRegistry = PinDefaultValueEditorRegistry.CreateWithBuiltins();
+        TypeSystem_    = new FakeTypeSystem(EditorRegistry);
         CommandSink_   = new FakeCommandSink(graph, NodeCatalog_, TypeSystem_);
         Validator      = new FakeLinkValidator(graph);
         MyBlueprint    = new FakeMyBlueprintModel();
