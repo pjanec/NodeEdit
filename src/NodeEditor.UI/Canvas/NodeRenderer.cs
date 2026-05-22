@@ -223,13 +223,27 @@ internal sealed class NodeRenderer
                      && !connectedInputPins.Contains(p.Id)
                      && (!p.IsAdvanced || node.ShowAdvancedPins))
             .ToList();
+        if (visibleInputPins.Count == 0) return;
 
         float editorWidthPx = EditorWidthGu * zoom;
-        float _ = EditorHorizPadGu * zoom;
+        float pinCenterX = nodeRect.Min.X + CanvasLayoutBuilder.NodeHorizPadGu * zoom;
+        float maxLabelWidthPx = 0f;
+        float targetFontSize = ImGui.GetFontSize() * zoom;
+        var font = ImGui.GetFont();
 
-        // Editor appears to the right of the pin label, left-aligned inside the node body.
-        // Position: node right side minus editor width minus horizontal padding.
-        float editorX = nodeRect.Min.X + nodeRect.Size.X * 0.5f;
+        foreach (var p in node.Pins.Where(x => x.Direction == PinDirection.Input && (!x.IsAdvanced || node.ShowAdvancedPins)))
+        {
+            if (pinPositions.TryGetValue(p.Id, out var pos))
+                pinCenterX = pos.X;
+
+            if (string.IsNullOrEmpty(p.Label)) continue;
+            float labelWidth = font.CalcTextSizeA(targetFontSize, float.MaxValue, 0f, p.Label).X;
+            if (labelWidth > maxLabelWidthPx) maxLabelWidthPx = labelWidth;
+        }
+
+        float editorX = pinCenterX + (8f * zoom) + maxLabelWidthPx + (EditorHorizPadGu * zoom);
+        float maxEditorX = nodeRect.Min.X + nodeRect.Size.X - (CanvasLayoutBuilder.NodeHorizPadGu * zoom) - editorWidthPx;
+        if (editorX > maxEditorX) editorX = maxEditorX;
 
         foreach (var pin in visibleInputPins)
         {
