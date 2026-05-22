@@ -27,6 +27,7 @@ internal sealed class WireRenderer
     {
         var theme = view.Host.Theme;
         var selection = view.Selection;
+        bool alt = (view.Host.Input.Modifiers & KeyModifiers.Alt) != 0;
 
         foreach (var link in view.Model.Links)
         {
@@ -58,12 +59,18 @@ internal sealed class WireRenderer
 
             bool selected = selection.Contains(SelectionEntry.OfLink(link.Id));
             bool hovered  = view.Interaction.Hover is { Kind: HoverKind.Link } h && h.Link == link.Id;
+            bool hoveredPinAttached = view.Interaction.Hover is { Kind: HoverKind.Pin } hp
+                                   && (hp.Pin == link.FromPin || hp.Pin == link.ToPin);
+            bool pendingDelete = alt && (hovered || hoveredPinAttached);
 
             float thickness = isExec ? theme.WireThicknessExec : theme.WireThicknessData;
             if (selected || hovered) thickness *= 1.6f;
 
             uint color = ImGui.GetColorU32(wireColor);
-            if (selected) color = ImGui.GetColorU32(theme.SelectionAccent);
+            if (pendingDelete)
+                color = ImGui.GetColorU32(new Vector4(1f, 0.1f, 0.1f, 1f));
+            else if (selected)
+                color = ImGui.GetColorU32(theme.SelectionAccent);
 
             DrawLinkSegments(dl, view, a, b, link, color, thickness, isExec);
         }

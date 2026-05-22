@@ -31,6 +31,7 @@ internal sealed class PinRenderer
 
         var theme   = view.Host.Theme;
         var zoom    = view.Viewport.Zoom;
+        bool alt    = (view.Host.Input.Modifiers & KeyModifiers.Alt) != 0;
         float radius = PinRadiusPx * MathF.Sqrt(zoom); // scale with zoom
 
         foreach (var pin in node.Pins)
@@ -47,7 +48,7 @@ internal sealed class PinRenderer
             bool hovered = view.Interaction.Hover is { Kind: HoverKind.Pin } h && h.Pin == pin.Id;
 
             // Spec §8: hovered pins scale to 1.5× and brighten their outline.
-            float currentRadius     = hovered ? radius * 1.5f : radius;
+            float currentRadius     = hovered ? radius * 1.2f : radius;
             float strokeThickness   = hovered ? 2f    : 1.5f;
 
             var typeColor = isExec
@@ -57,9 +58,13 @@ internal sealed class PinRenderer
             uint fillColor    = connected
                 ? ImGui.GetColorU32(typeColor)
                 : ImGui.GetColorU32(typeColor with { W = 0.25f });
-            uint outlineColor = hovered
-                ? ImGui.GetColorU32(view.Host.Theme.PrimarySelectionAccent)
-                : ImGui.GetColorU32(typeColor);
+            uint outlineColor = ImGui.GetColorU32(typeColor);
+            if (hovered)
+            {
+                outlineColor = alt
+                    ? ImGui.GetColorU32(new Vector4(1f, 0.8f, 0f, 1f))
+                    : ImGui.GetColorU32(view.Host.Theme.PrimarySelectionAccent);
+            }
 
             if (isExec)
             {

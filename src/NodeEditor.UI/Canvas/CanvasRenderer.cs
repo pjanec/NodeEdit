@@ -128,6 +128,11 @@ public sealed class CanvasRenderer
 
         // 4. Process input.
         _input.Handle(view, isCanvasBgActive);
+        if ((view.Host.Input.Modifiers & KeyModifiers.Alt) != 0
+            && view.Interaction.Hover.Kind == HoverKind.Link)
+        {
+            ImGui.SetMouseCursor(ImGuiMouseCursor.NotAllowed);
+        }
 
         // ── Draw phases ───────────────────────────────────────────────────
 

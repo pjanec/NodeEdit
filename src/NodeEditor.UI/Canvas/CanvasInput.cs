@@ -127,10 +127,40 @@ internal sealed class CanvasInput
         {
             bool ctrl  = (modifiers & KeyModifiers.Ctrl)  != 0;
             bool shift = (modifiers & KeyModifiers.Shift) != 0;
+            bool alt   = (modifiers & KeyModifiers.Alt)   != 0;
 
             switch (hover.Kind)
             {
                 case HoverKind.Pin:
+                    if (alt)
+                    {
+                        var linksToRemove = view.Model.Links
+                            .Where(l => l.FromPin == hover.Pin || l.ToPin == hover.Pin)
+                            .Select(l => l.Id)
+                            .ToList();
+
+                        if (linksToRemove.Count > 0)
+                            view.Commands.Apply(new GraphCommand.RemoveLinks(linksToRemove));
+                        return;
+                    }
+
+                    var pinModel = view.Model.FindPin(hover.Pin);
+                    if (ctrl && pinModel?.Direction == PinDirection.Input)
+                    {
+                        var existingLink = view.Model.Links.FirstOrDefault(l => l.ToPin == hover.Pin);
+                        if (existingLink != null)
+                        {
+                            view.Commands.Apply(new GraphCommand.RemoveLinks(new[] { existingLink.Id }));
+                            view.Interaction.Mode = InteractionMode.PendingWire;
+                            view.Interaction.PendingWire = new PendingWire
+                            {
+                                SourcePin = existingLink.FromPin,
+                                CursorGraph = view.Viewport.ScreenToGraph(input.MousePosition),
+                            };
+                            return;
+                        }
+                    }
+
                     // Start wire drag from pin
                     view.Interaction.Mode = InteractionMode.PendingWire;
                     view.Interaction.PendingWire = new PendingWire
@@ -170,6 +200,12 @@ internal sealed class CanvasInput
                     break;
 
                 case HoverKind.Link:
+                    if (alt)
+                    {
+                        view.Commands.Apply(new GraphCommand.RemoveLinks(new[] { hover.Link }));
+                        return;
+                    }
+
                     if (ctrl)
                     {
                         // Ctrl+click wire → insert reroute
